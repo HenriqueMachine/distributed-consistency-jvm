@@ -1,0 +1,17 @@
+### Participantes com saldo
+GET http://localhost:8082/participants
+
+### Cadastrar um participante da sala
+POST http://localhost:8082/participants
+Content-Type: application/json
+
+{"name": "Maria Souza", "pixKey": "maria", "balance": 1000.00}
+
+### Transferência: Ana → Henrique, R$ 150,00
+POST http://localhost:8081/transfers
+Content-Type: application/json
+
+{"from": "ana", "to": "henrique", "amount": 150.00}
+
+### Consultar a transferência
+GET http://localhost:8081/transfers/1042

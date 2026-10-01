@@ -1,0 +1,33 @@
+# Garante que cada passo compila, passa nos testes unitários e reproduz os cenários ponta a
+# ponta. Roda na main e em cada tag passo-N.
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["passo-*"]
+  pull_request:
+
+jobs:
+  build-and-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Build e testes unitários
+        run: ./gradlew build
+
+      - name: Sobe infra e serviços no Docker
+        run: docker compose --profile apps up -d --build --wait
+
+      - name: Cenários ponta a ponta
+        run: ./gradlew e2e
+
+      - name: Logs do ambiente
+        if: failure()
+        run: docker compose --profile apps logs --no-color

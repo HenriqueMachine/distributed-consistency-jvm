@@ -1,0 +1,28 @@
+# Valores para rodar na máquina (./gradlew bootRun --parallel).
+# No perfil "apps" do docker compose, as variáveis de ambiente sobrescrevem host e porta.
+spring:
+  application:
+    name: account-service
+  datasource:
+    url: jdbc:postgresql://localhost:5434/accounts
+    username: workshop
+    password: workshop
+  kafka:
+    bootstrap-servers: localhost:9094
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  file:
+    # Além do console, cada serviço loga em logs/account-service.log: é onde o grep da apresentação procura.
+    name: ${LOG_DIR:logs}/account-service.log
+  level:
+    # O cliente Kafka é muito verboso em INFO; deixamos os logs para a história da saga.
+    org.apache.kafka: WARN
