@@ -14,6 +14,9 @@ enum class Simulation {
 
     /** account-service: debita na hora, mas a resposta só sai 15 s depois (passo 4). */
     DEBIT_SLOW,
+
+    /** pix-service: o consumidor lança exceção em toda tentativa (passo 5). */
+    PIX_CRASH,
     ;
 
     companion object {

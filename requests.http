@@ -57,3 +57,10 @@ Content-Type: application/json
 X-Simulate: DEBIT_SLOW
 
 {"from": "ana", "to": "henrique", "amount": 150.00}
+
+### Passo 5 · Pix quebrado: o consumidor falha em toda tentativa
+POST http://localhost:8081/transfers
+Content-Type: application/json
+X-Simulate: PIX_CRASH
+
+{"from": "ana", "to": "henrique", "amount": 150.00}

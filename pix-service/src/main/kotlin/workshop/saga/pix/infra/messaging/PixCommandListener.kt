@@ -9,7 +9,13 @@ import workshop.saga.contracts.Topics
 import workshop.saga.messaging.IncomingMessage
 import workshop.saga.pix.application.PixService
 
-/** Recebe os comandos do orquestrador e os entrega ao caso de uso. */
+/**
+ * Recebe os comandos do orquestrador e os entrega ao caso de uso.
+ *
+ * ⚠ QUEBRA passo-5: nenhum tratamento de erro configurado. Se o caso de uso lançar
+ * exceção, o handler padrão do Spring Kafka tenta 10 vezes sem esperar, loga e
+ * **commita o offset**: a mensagem some e ninguém a guarda.
+ */
 @Component
 class PixCommandListener(private val pixService: PixService) {
 

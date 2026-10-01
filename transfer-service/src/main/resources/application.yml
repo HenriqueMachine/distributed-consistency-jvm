@@ -41,4 +41,6 @@ logging:
 
 saga:
   timeouts:
+    # Quanto esperar pelo débito, e quantas vezes perguntar antes de NEEDS_ATTENTION.
     debit: 8s
+    max-attempts: 3

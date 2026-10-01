@@ -13,6 +13,7 @@ import java.time.Duration
 @ConfigurationProperties("saga.timeouts")
 data class SagaTimeoutProperties(
     val debit: Duration = Duration.ofSeconds(8),
+    val maxAttempts: Int = 3,
 )
 
 /** Monta o domínio puro com a configuração do Spring. O domínio não conhece o Spring. */
@@ -23,7 +24,7 @@ class SagaConfig {
     /** A máquina de estados com os prazos configurados. */
     @Bean
     fun sagaStateMachine(timeouts: SagaTimeoutProperties) =
-        SagaStateMachine(SagaTimeouts(debit = timeouts.debit))
+        SagaStateMachine(SagaTimeouts(debit = timeouts.debit, maxAttempts = timeouts.maxAttempts))
 
     /** O relógio da saga; nos testes do domínio, o `now` é passado direto. */
     @Bean

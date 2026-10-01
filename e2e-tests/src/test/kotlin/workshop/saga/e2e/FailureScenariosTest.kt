@@ -44,18 +44,24 @@ class FailureScenariosTest {
     }
 
     @Test
-    fun `quebra passo-4 - DEBIT_SLOW - o timeout estorna um debito que deu certo e cancela`() {
+    fun `DEBIT_SLOW - timeout vira UNKNOWN, o reenvio recebe o resultado anterior e a transferencia conclui`() {
         val sender = newSender(balance = "1000.00")
 
         val transfer = createTransfer(from = sender, simulate = "DEBIT_SLOW")
 
-        awaitState(transfer.id, "CANCELLED", timeout = Duration.ofSeconds(20))
-        // A aprovação chega aos 15 s e é ignorada: a transferência ia passar, mas foi estornada.
-        await during Duration.ofSeconds(8) atMost Duration.ofSeconds(10) untilAsserted {
-            assertThat(transfer(transfer.id)?.state).isEqualTo("CANCELLED")
-        }
+        awaitState(transfer.id, "COMPLETED", timeout = Duration.ofSeconds(20))
         assertThat(statement(transfer.id).debits).hasSize(1)
-        assertThat(statement(transfer.id).refunds).hasSize(1)
-        assertThat(pixCredits(transfer.id)).isEmpty()
+        assertThat(statement(transfer.id).refunds).isEmpty()
+        assertThat(participant(sender)?.balance).isEqualByComparingTo("850.00")
+    }
+
+    @Test
+    fun `quebra passo-5 - PIX_CRASH some com a mensagem e a transferencia fica parada`() {
+        val transfer = createTransfer(from = newSender(), simulate = "PIX_CRASH")
+
+        awaitState(transfer.id, "PIX_PENDING")
+        await during Duration.ofSeconds(10) atMost Duration.ofSeconds(12) untilAsserted {
+            assertThat(transfer(transfer.id)?.state).isEqualTo("PIX_PENDING")
+        }
     }
 }

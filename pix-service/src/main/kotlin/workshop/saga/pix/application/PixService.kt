@@ -26,11 +26,13 @@ class PixService(
     private val spi: SpiGateway,
     private val publisher: MessagePublisher,
     private val inbox: Inbox,
+    private val failureSimulator: FailureSimulator,
 ) {
     /** Liquida o Pix uma única vez, ou recusa se o destino não puder receber. */
     @Transactional
     fun send(command: SendPix, request: Envelope) {
         if (!inbox.firstDelivery(request)) return
+        failureSimulator.beforeSend(request)
 
         val existing = pixTransfers.findByTransferId(command.transferId)
         if (existing != null) {
