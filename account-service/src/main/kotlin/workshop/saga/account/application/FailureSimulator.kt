@@ -21,7 +21,7 @@ class FailureSimulator(
      */
     fun replyDelayFor(request: Envelope): Duration =
         if (request.simulation == Simulation.DEBIT_SLOW) {
-            log.warn("{} simulate=DEBIT_SLOW: resposta retida por {}s", request.transferId, slowReplyDelay.toSeconds())
+            log.warn("simulate=DEBIT_SLOW: resposta retida por {}s", slowReplyDelay.toSeconds())
             slowReplyDelay
         } else {
             Duration.ZERO

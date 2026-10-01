@@ -41,13 +41,13 @@ class MorticianTest {
     }
 
     @Test
-    fun `quebra passo-7 - as linhas de retry e de DLT nao dizem de qual transferencia sao`() {
+    fun `as linhas de retry e de DLT dizem de qual transferencia sao`() {
         val transfer = createTransfer(from = newSender(), simulate = "PIX_CRASH")
         await atMost Duration.ofSeconds(20) untilAsserted { assertThat(deadLetters(transfer.id)).isNotEmpty() }
 
-        val logs = LogFiles.of("pix-service")
+        val lines = LogFiles.of("pix-service").filter { it.contains("transferId=${transfer.id} ") }
 
-        assertThat(logs).anyMatch { it.contains("Record in retry and not yet recovered") }
-        assertThat(logs).noneMatch { it.contains("transferId=${transfer.id}") }
+        assertThat(lines).anyMatch { it.contains("Record in retry and not yet recovered") }
+        assertThat(lines).anyMatch { it.contains("falha tentativa=3 → pix.commands.DLT") }
     }
 }

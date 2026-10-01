@@ -18,7 +18,7 @@ class FailureSimulator {
     /** `PIX_CRASH`: toda tentativa de enviar o Pix desta transferência falha. */
     fun beforeSend(request: Envelope) {
         if (request.simulation == Simulation.PIX_CRASH) {
-            log.warn("{} simulate=PIX_CRASH: falha ao processar o Pix", request.transferId)
+            log.warn("simulate=PIX_CRASH: falha ao processar o Pix")
             throw PixProcessingException("falha ao processar o Pix (simulada) da transferência ${request.transferId}")
         }
     }

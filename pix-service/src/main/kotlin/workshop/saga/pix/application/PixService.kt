@@ -10,6 +10,7 @@ import workshop.saga.contracts.PixSettled
 import workshop.saga.contracts.SendPix
 import workshop.saga.messaging.MessagePublisher
 import workshop.saga.messaging.inbox.Inbox
+import workshop.saga.messaging.observability.SagaContext
 import workshop.saga.pix.domain.PixDecision
 import workshop.saga.pix.domain.PixPolicy
 import workshop.saga.pix.domain.PixTransfer
@@ -36,25 +37,27 @@ class PixService(
 
         val existing = pixTransfers.findByTransferId(command.transferId)
         if (existing != null) {
-            log.info("{} Pix já liquidado endToEndId={} → devolvendo resultado anterior", command.transferId, existing.endToEndId)
-            publisher.publish(Envelope.of(PixSettled(command.transferId, existing.endToEndId), request.simulation))
+            log.info("Pix já liquidado endToEndId={} → devolvendo resultado anterior", existing.endToEndId)
+            publisher.publish(request.reply(PixSettled(command.transferId, existing.endToEndId)))
             return
         }
 
         val amount = Money(command.amountInCents)
         val reply = when (val decision = PixPolicy.evaluate(command.to)) {
             PixDecision.Send -> {
-                val pix = PixTransfer(command.transferId, command.to, amount, spi.settle(command.transferId))
+                // A chamada ao SPI é um nó novo na árvore de correlação: ….PIX-c3.SPI-3f (slide 41).
+                val endToEndId = SagaContext.withCid(request.cid?.child("SPI")) { spi.settle(command.transferId) }
+                val pix = PixTransfer(command.transferId, command.to, amount, endToEndId)
                 pixTransfers.insert(pix)
-                log.info("{} Pix liquidado {} para {} endToEndId={} → PixSettled", pix.transferId, amount, pix.to, pix.endToEndId)
+                log.info("Pix liquidado {} para {} endToEndId={} → PixSettled", amount, pix.to, pix.endToEndId)
                 PixSettled(command.transferId, pix.endToEndId)
             }
             is PixDecision.Reject -> {
-                log.info("{} {} → PixRejected", command.transferId, decision.reason)
+                log.info("{} → PixRejected", decision.reason)
                 PixRejected(command.transferId, decision.reason)
             }
         }
-        publisher.publish(Envelope.of(reply, request.simulation))
+        publisher.publish(request.reply(reply))
     }
 
     /** Os créditos feitos para a transferência [transferId]. */

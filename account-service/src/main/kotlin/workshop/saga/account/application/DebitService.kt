@@ -44,7 +44,7 @@ class DebitService(
 
         val existing = debits.findByTransferId(command.transferId)
         if (existing != null) {
-            log.info("{} já debitado debitId={} → devolvendo resultado anterior", command.transferId, existing.id)
+            log.info("já debitado debitId={} → devolvendo resultado anterior", existing.id)
             reply(AccountDebited(command.transferId, existing.id.toString()), request)
             return
         }
@@ -56,11 +56,11 @@ class DebitService(
             is DebitDecision.Approve -> {
                 accounts.updateBalance(decision.remaining)
                 val debit = debits.insert(command.transferId, command.from, amount)
-                log.info("{} debitado {} de {} debitId={} → AccountDebited", command.transferId, amount, command.from, debit.id)
+                log.info("débito aprovado {} de {} debitId={} → AccountDebited", amount, command.from, debit.id)
                 reply(AccountDebited(command.transferId, debit.id.toString()), request, failureSimulator.replyDelayFor(request))
             }
             is DebitDecision.Decline -> {
-                log.info("{} débito recusado: {} → DebitDeclined", command.transferId, decision.reason)
+                log.info("débito recusado: {} → DebitDeclined", decision.reason)
                 reply(DebitDeclined(command.transferId, decision.reason), request)
             }
         }
@@ -74,9 +74,9 @@ class DebitService(
         val debit = debits.findByTransferId(command.transferId)
         when {
             debit == null ->
-                log.warn("{} sem débito para estornar → DebitRefunded", command.transferId)
+                log.warn("sem débito para estornar → DebitRefunded")
             refunds.existsFor(debit.id) ->
-                log.info("{} já estornado debitId={} → devolvendo resultado anterior", command.transferId, debit.id)
+                log.info("já estornado debitId={} → devolvendo resultado anterior", debit.id)
             else -> refundNow(debit)
         }
         reply(DebitRefunded(command.transferId, debit?.id?.toString()), request)
@@ -86,11 +86,11 @@ class DebitService(
         val account = checkNotNull(accounts.lockByKey(debit.from)) { "débito sem conta: ${debit.id}" }
         accounts.updateBalance(account.copy(balance = account.balance + debit.amount))
         refunds.insert(debit)
-        log.info("{} estornado {} para {} debitId={} → DebitRefunded", debit.transferId, debit.amount, debit.from, debit.id)
+        log.info("estornado {} para {} debitId={} → DebitRefunded", debit.amount, debit.from, debit.id)
     }
 
     private fun reply(reply: AccountReply, request: Envelope, delay: Duration = Duration.ZERO) =
-        publisher.publish(Envelope.of(reply, request.simulation), delay)
+        publisher.publish(request.reply(reply), delay)
 
     private companion object {
         val log = LoggerFactory.getLogger(DebitService::class.java)

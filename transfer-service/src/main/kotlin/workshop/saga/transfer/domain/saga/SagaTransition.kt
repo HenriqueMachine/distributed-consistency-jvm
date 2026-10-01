@@ -8,7 +8,8 @@ import java.util.UUID
  * não se apagam: cada transição vira uma linha nova em `saga_transitions`, nunca um UPDATE.
  *
  * [eventId] é a mensagem que causou a transição (nulo quando foi o relógio ou a criação),
- * [cid] é o correlation id e [appVersion] é o git sha do código que decidiu.
+ * [cid] é o correlation id dessa mensagem (ou a raiz `TRF-1042`) e [appVersion] é o git sha
+ * do código que decidiu.
  */
 data class SagaTransition(
     val transferId: TransferId,
@@ -18,9 +19,4 @@ data class SagaTransition(
     val eventId: UUID?,
     val cid: String,
     val appVersion: String,
-) {
-    companion object {
-        /** Correlation id raiz de uma transferência: `TRF-1042`. */
-        fun rootCid(transferId: TransferId) = "TRF-$transferId"
-    }
-}
+)

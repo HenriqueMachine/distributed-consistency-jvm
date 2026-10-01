@@ -68,7 +68,9 @@ class FailureScenariosTest {
         val deadLetters = WorkshopKafka.recordsWithKey("pix.commands.DLT", transfer.id.toString())
         assertThat(deadLetters).hasSize(3)
         assertThat(deadLetters.first().header("kafka_dlt-exception-message")).contains("falha ao processar o Pix")
-        assertThat(LogFiles.of("pix-service")).anyMatch { it.contains("${transfer.id} falha tentativa=3 → pix.commands.DLT") }
+        assertThat(LogFiles.of("pix-service")).anyMatch {
+            it.contains("transferId=${transfer.id} ") && it.contains("falha tentativa=3 → pix.commands.DLT")
+        }
     }
 
     @Test

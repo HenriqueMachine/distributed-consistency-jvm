@@ -22,7 +22,7 @@ class FailureSimulator {
      */
     fun afterCommandsSent(transfer: Transfer) {
         if (transfer.simulation == Simulation.CRASH_AFTER_SEND) {
-            log.warn("transferência {} simulate=CRASH_AFTER_SEND: caindo depois do send, antes do commit", transfer.id)
+            log.warn("simulate=CRASH_AFTER_SEND: caindo depois do send, antes do commit")
             throw SimulatedFailureException(transfer.id, "falha simulada depois do envio (transferência ${transfer.id})")
         }
     }

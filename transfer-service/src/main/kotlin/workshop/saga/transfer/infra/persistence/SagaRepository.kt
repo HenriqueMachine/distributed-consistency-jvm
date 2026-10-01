@@ -50,6 +50,13 @@ class SagaRepository(private val jdbc: JdbcClient) {
     /** Lê a saga e trava a linha até o fim da transação. */
     fun lockByTransferId(transferId: TransferId): Saga? = selectByTransferId(transferId, lock = true)
 
+    /** Quantas sagas existem em cada estado. Alimenta a métrica `saga.state`. */
+    fun countByState(): Map<SagaState, Long> =
+        jdbc.sql("select state, count(*) as total from sagas group by state")
+            .query { rs, _ -> SagaState.valueOf(rs.getString("state")) to rs.getLong("total") }
+            .list()
+            .toMap()
+
     /** Transferências cuja saga passou do prazo, as mais atrasadas primeiro. */
     fun findOverdue(now: Instant, limit: Int): List<TransferId> =
         jdbc.sql("select transfer_id from sagas where deadline_at <= :now order by deadline_at limit :limit")

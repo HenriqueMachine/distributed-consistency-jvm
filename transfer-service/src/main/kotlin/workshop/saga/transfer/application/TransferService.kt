@@ -3,6 +3,8 @@ package workshop.saga.transfer.application
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import workshop.saga.contracts.Cid
+import workshop.saga.messaging.observability.SagaContext
 import workshop.saga.transfer.domain.NewTransfer
 import workshop.saga.transfer.domain.Transfer
 import workshop.saga.transfer.domain.TransferId
@@ -33,10 +35,12 @@ class TransferService(
     @Transactional
     fun create(newTransfer: NewTransfer): TransferSummary {
         val transfer = transfers.insert(newTransfer)
-        log.info("transferência {} criada {} → {} valor={}", transfer.id, transfer.from, transfer.to, transfer.amount)
-        val saga = orchestrator.start(transfer)
-        failureSimulator.afterCommandsSent(transfer)
-        return TransferSummary(transfer, saga.state)
+        return SagaContext.with(transfer.id, Cid.root(transfer.id.value)) {
+            log.info("transferência criada {} → {} valor={}", transfer.from, transfer.to, transfer.amount)
+            val saga = orchestrator.start(transfer)
+            failureSimulator.afterCommandsSent(transfer)
+            TransferSummary(transfer, saga.state)
+        }
     } // o commit grava transferência, saga e outbox de uma vez; o relay publica depois
 
     /** A transferência e o estado da saga, ou nulo se ela não existir. */

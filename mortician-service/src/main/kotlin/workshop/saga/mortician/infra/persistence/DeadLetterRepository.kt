@@ -21,9 +21,9 @@ class DeadLetterRepository(private val jdbc: JdbcClient) {
         jdbc.sql(
             """
             insert into dead_letters (dlt_topic, dlt_partition, dlt_offset, original_topic, message_key,
-                                      message_id, message_type, payload, error, transfer_id, status)
+                                      message_id, message_type, payload, error, transfer_id, cid, status)
             values (:dltTopic, :partition, :offset, :originalTopic, :key,
-                    :messageId, :messageType, :payload, :error, :transferId, 'NEW')
+                    :messageId, :messageType, :payload, :error, :transferId, :cid, 'NEW')
             on conflict (dlt_topic, dlt_partition, dlt_offset) do nothing
             returning id
             """,
@@ -38,6 +38,7 @@ class DeadLetterRepository(private val jdbc: JdbcClient) {
             .param("payload", dead.payload)
             .param("error", dead.error)
             .param("transferId", dead.transferId)
+            .param("cid", dead.cid)
             .query(Long::class.java)
             .optional()
             .orElse(null)
@@ -96,6 +97,7 @@ class DeadLetterRepository(private val jdbc: JdbcClient) {
         payload = getString("payload"),
         error = getString("error"),
         transferId = getLong("transfer_id").takeUnless { wasNull() },
+        cid = getString("cid"),
         status = DeadLetterStatus.valueOf(getString("status")),
         receivedAt = getTimestamp("received_at").toInstant(),
         rescue = getString("republished_by")?.let {

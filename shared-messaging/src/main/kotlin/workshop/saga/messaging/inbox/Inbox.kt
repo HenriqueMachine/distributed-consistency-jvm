@@ -32,8 +32,7 @@ class Inbox(private val jdbc: JdbcClient) {
             .update() == 1
         if (!inserted) {
             log.info(
-                "{} evento {}… já processado — ignorado{}",
-                envelope.transferId,
+                "evento {}… já processado — ignorado{}",
                 envelope.messageId.toString().take(4),
                 envelope.simulation?.let { " (simulate=$it)" } ?: "",
             )

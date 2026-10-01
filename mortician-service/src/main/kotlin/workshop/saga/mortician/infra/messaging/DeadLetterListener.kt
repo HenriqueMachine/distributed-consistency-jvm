@@ -34,6 +34,7 @@ class DeadLetterListener(private val deadLetters: DeadLetterService) {
                     record.header(KafkaHeaders.DLT_EXCEPTION_CAUSE_FQCN)?.substringAfterLast('.'),
                     record.header(KafkaHeaders.DLT_EXCEPTION_MESSAGE)?.withoutListenerPrefix(),
                 ).joinToString(": ").ifEmpty { "erro desconhecido" },
+                cid = record.header(MessageHeaders.CID),
             ),
         )
     }

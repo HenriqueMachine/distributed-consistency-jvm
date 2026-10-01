@@ -34,3 +34,7 @@ logging:
   level:
     # O cliente Kafka é muito verboso em INFO; deixamos os logs para a história da saga.
     org.apache.kafka: WARN
+  pattern:
+    # Toda linha com uma transferência no MDC ganha "transferId=1042 cid=TRF-1042.DEB-a1 "
+    # (linhas sem contexto ficam como estão). É o que faz o grep da apresentação funcionar.
+    correlation: "%replace(transferId=%X{transferId} ){'^transferId= $', ''}%replace(cid=%X{cid} ){'^cid= $', ''}"

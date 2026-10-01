@@ -46,10 +46,11 @@ class SpiGateway(
 
     private fun callSpi(transferId: Long): String {
         if (outage.downUntil() != null) {
-            log.warn("{} SPI indisponível", transferId)
+            log.warn("SPI indisponível")
             throw SpiUnavailableException("SPI indisponível")
         }
         return settled.computeIfAbsent(transferId) { "E$it${UUID.randomUUID().toString().take(6)}" }
+            .also { log.info("SPI liquidou endToEndId={}", it) }
     }
 
     companion object {

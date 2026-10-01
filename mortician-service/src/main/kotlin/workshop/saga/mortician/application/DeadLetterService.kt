@@ -3,6 +3,8 @@ package workshop.saga.mortician.application
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import workshop.saga.contracts.Cid
+import workshop.saga.messaging.observability.SagaContext
 import workshop.saga.messaging.outbox.OutboxRecord
 import workshop.saga.messaging.outbox.OutboxRepository
 import workshop.saga.mortician.domain.AlreadyRepublishedException
@@ -28,8 +30,8 @@ class DeadLetterService(
     fun bury(incoming: IncomingDeadLetter) {
         val id = deadLetters.insertIfAbsent(incoming) ?: return
         log.warn(
-            "{} dead letter {} guardada: {} {} → {}: {}",
-            incoming.transferId ?: "-", id, incoming.messageType, incoming.originalTopic, incoming.deadLetterTopic, incoming.error,
+            "dead letter {} guardada: {} {} → {}: {}",
+            id, incoming.messageType, incoming.originalTopic, incoming.deadLetterTopic, incoming.error,
         )
     }
 
@@ -50,7 +52,19 @@ class DeadLetterService(
     @Transactional
     fun republish(id: Long, by: String, reason: String): DeadLetter {
         val rescued = get(id).republish(by, reason, clock.instant())
-        if (!deadLetters.markRepublished(rescued)) throw AlreadyRepublishedException(id)
+        // O resgate é um nó novo na árvore de correlação: ….PIX-c3.RPB-9d (slide 41).
+        val cid = rescued.cid?.let { Cid(it).child("RPB") }
+        val republish = {
+            republishThroughOutbox(rescued, cid)
+            log.info("dead letter {} republicada em {} por {}: {}", id, rescued.originalTopic, by, reason)
+            rescued
+        }
+        // Sem transferência (lixo injetado na DLT), não há contexto de saga para pôr no MDC.
+        return rescued.transferId?.let { SagaContext.with(it, cid, republish) } ?: republish()
+    }
+
+    private fun republishThroughOutbox(rescued: DeadLetter, cid: Cid?) {
+        if (!deadLetters.markRepublished(rescued)) throw AlreadyRepublishedException(rescued.id)
         outbox.save(
             OutboxRecord(
                 messageId = UUID.randomUUID(),
@@ -59,10 +73,9 @@ class DeadLetterService(
                 type = rescued.messageType ?: "",
                 payload = rescued.payload,
                 simulation = null,
+                cid = cid,
             ),
         )
-        log.info("{} dead letter {} republicada em {} por {}: {}", rescued.transferId ?: "-", id, rescued.originalTopic, by, reason)
-        return rescued
     }
 
     private companion object {

@@ -1,5 +1,7 @@
 package workshop.saga.messaging.errors
 
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
 import org.apache.kafka.common.TopicPartition
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
@@ -35,8 +37,8 @@ class KafkaErrorHandlingConfig {
 
     /** O handler de erro de todos os listeners do serviço. */
     @Bean
-    fun kafkaErrorHandler(kafka: KafkaTemplate<String, String>): DefaultErrorHandler =
-        DefaultErrorHandler(deadLetterRecoverer(kafka), retryBackOff()).apply {
+    fun kafkaErrorHandler(kafka: KafkaTemplate<String, String>, meters: MeterRegistry): DefaultErrorHandler =
+        DefaultErrorHandler(deadLetterRecoverer(kafka, meters), retryBackOff()).apply {
             addNotRetryableExceptions(InvalidPayloadException::class.java)
             setBackOffFunction { _, exception ->
                 if (exception.causeOfType<DependencyUnavailableException>() != null) WAIT_FOR_DEPENDENCY else null
@@ -48,25 +50,34 @@ class KafkaErrorHandlingConfig {
         multiplier = 2.0
     }
 
-    /** Publica na DLT (com headers explicando a falha) e deixa um rastro legível no log. */
-    private fun deadLetterRecoverer(kafka: KafkaTemplate<String, String>): ConsumerRecordRecoverer {
+    /**
+     * Publica na DLT (com headers explicando a falha), deixa um rastro legível no log e
+     * conta a mensagem em `saga.dlt.messages`: toda DLT precisa de alerta (slide 36).
+     * O `transferId` e o `cid` já estão no MDC: o interceptor os pôs antes do listener.
+     */
+    private fun deadLetterRecoverer(kafka: KafkaTemplate<String, String>, meters: MeterRegistry): ConsumerRecordRecoverer {
         val publisher = DeadLetterPublishingRecoverer(kafka) { record, _ ->
             TopicPartition(Topics.deadLetterOf(record.topic()), record.partition())
         }
         return ConsumerRecordRecoverer { record, exception ->
+            val deadLetterTopic = Topics.deadLetterOf(record.topic())
             publisher.accept(record, exception)
+            deadLetterCounter(meters, deadLetterTopic).increment()
             val invalidPayload = exception.causeOfType<InvalidPayloadException>()
-            // ⚠ QUEBRA passo-7: aqui a transferência aparece só como a chave crua. As linhas que
-            // o próprio Spring Kafka loga entre os retries não dizem de qual transferência são.
             log.error(
-                "{} falha {} → {}: {}",
-                record.key(),
+                "falha {} → {}: {}",
                 if (invalidPayload != null) "permanente, sem retry" else "tentativa=$MAX_RETRIES",
-                Topics.deadLetterOf(record.topic()),
+                deadLetterTopic,
                 (invalidPayload ?: exception.rootCause()).message,
             )
         }
     }
+
+    private fun deadLetterCounter(meters: MeterRegistry, topic: String): Counter =
+        Counter.builder("saga.dlt.messages")
+            .description("Mensagens que esgotaram as tentativas e foram para a DLT")
+            .tag("topic", topic)
+            .register(meters)
 
     private inline fun <reified T : Throwable> Throwable.causeOfType(): T? =
         generateSequence(this) { it.cause }.filterIsInstance<T>().firstOrNull()

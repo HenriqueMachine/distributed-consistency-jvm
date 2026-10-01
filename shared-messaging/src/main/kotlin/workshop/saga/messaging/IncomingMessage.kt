@@ -1,6 +1,7 @@
 package workshop.saga.messaging
 
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import workshop.saga.contracts.Cid
 import workshop.saga.contracts.Envelope
 import workshop.saga.contracts.InvalidPayloadException
 import workshop.saga.contracts.MessageCodec
@@ -12,7 +13,7 @@ import java.util.UUID
 object IncomingMessage {
 
     /**
-     * Lê payload, tipo, `messageId` e simulação de [record].
+     * Lê payload, tipo, `messageId`, simulação e cid de [record].
      * @throws InvalidPayloadException se faltar o `messageId` ou o payload não servir.
      */
     fun read(record: ConsumerRecord<String, String>): Envelope {
@@ -24,6 +25,7 @@ object IncomingMessage {
             messageId = messageId,
             message = MessageCodec.decode(type, record.value()),
             simulation = runCatching { Simulation.parse(record.header(MessageHeaders.SIMULATE)) }.getOrNull(),
+            cid = record.header(MessageHeaders.CID)?.let(::Cid),
         )
     }
 

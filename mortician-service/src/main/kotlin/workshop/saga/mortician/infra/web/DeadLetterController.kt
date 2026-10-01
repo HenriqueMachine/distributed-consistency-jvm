@@ -25,6 +25,7 @@ data class RepublishRequest(val reason: String, val requestedBy: String = "apres
 data class DeadLetterResponse(
     val id: Long,
     val transferId: Long?,
+    val cid: String?,
     val status: String,
     val originalTopic: String,
     val deadLetterTopic: String,
@@ -40,7 +41,7 @@ data class DeadLetterResponse(
     companion object {
         /** Converte a mensagem morta do domínio para a resposta HTTP. */
         fun from(d: DeadLetter) = DeadLetterResponse(
-            d.id, d.transferId, d.status.name, d.originalTopic, d.deadLetterTopic, d.messageType, d.messageId,
+            d.id, d.transferId, d.cid, d.status.name, d.originalTopic, d.deadLetterTopic, d.messageType, d.messageId,
             d.error, d.payload, d.receivedAt, d.rescue?.by, d.rescue?.reason, d.rescue?.at,
         )
     }

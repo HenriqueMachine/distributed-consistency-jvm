@@ -4,6 +4,7 @@ import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
+import tools.jackson.databind.JsonNode
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
 import java.math.BigDecimal
@@ -104,6 +105,13 @@ object WorkshopClient {
     /** Traz o SPI de volta na hora. */
     fun endSpiOutage() {
         http.send(HttpRequest.newBuilder(URI.create("$pixUrl/spi/outage")).DELETE().build(), HttpResponse.BodyHandlers.ofString())
+    }
+
+    /** Valor de uma métrica do actuator do serviço na [port], filtrada por uma tag; 0 se ainda não existir. */
+    fun metric(port: Int, name: String, tag: String): Double {
+        val response = get("http://localhost:$port/actuator/metrics/$name?tag=$tag")
+        if (response.statusCode() == 404) return 0.0
+        return json.readValue<JsonNode>(response.body()).get("measurements").first().get("value").asDouble()
     }
 
     /** Estado do circuito `spi`: CLOSED, OPEN ou HALF_OPEN. */

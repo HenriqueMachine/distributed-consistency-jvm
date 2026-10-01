@@ -13,6 +13,7 @@ data class IncomingDeadLetter(
     val messageType: String?,
     val payload: String,
     val error: String,
+    val cid: String?,
 ) {
     /** A chave da mensagem é o transferId; nulo se a chave não for um número (ex.: lixo injetado). */
     val transferId: Long? get() = key.toLongOrNull()

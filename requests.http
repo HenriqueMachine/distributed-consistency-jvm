@@ -85,3 +85,12 @@ POST http://localhost:8084/dead-letters/1/republish
 Content-Type: application/json
 
 {"reason": "bug do PIX_CRASH corrigido no deploy", "requestedBy": "henrique"}
+
+### Passo 8 · Sagas por estado (NEEDS_ATTENTION, DEBIT_UNKNOWN…)
+GET http://localhost:8081/actuator/metrics/saga.state?tag=state:NEEDS_ATTENTION
+
+### Passo 8 · Mensagens que foram para a DLT
+GET http://localhost:8083/actuator/metrics/saga.dlt.messages
+
+### Passo 8 · Estado do circuit breaker do SPI
+GET http://localhost:8083/actuator/circuitbreakers

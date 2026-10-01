@@ -8,6 +8,9 @@ object MessageHeaders {
     /** Nome do tipo da mensagem (ex.: `DebitAccount`), usado para desserializar. */
     const val MESSAGE_TYPE = "messageType"
 
+    /** Correlation id em árvore (slide 41). Ver [Cid]. */
+    const val CID = "x-cid"
+
     /** Falha a simular, vinda do header HTTP `X-Simulate` da transferência. Ver [Simulation]. */
     const val SIMULATE = "simulate"
 }

@@ -1,5 +1,6 @@
 package workshop.saga.messaging.outbox
 
+import workshop.saga.contracts.Cid
 import workshop.saga.contracts.Simulation
 import java.util.UUID
 
@@ -11,4 +12,5 @@ data class OutboxRecord(
     val type: String,
     val payload: String,
     val simulation: Simulation?,
+    val cid: Cid?,
 )

@@ -2,6 +2,7 @@ package workshop.saga.messaging.outbox
 
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Repository
+import workshop.saga.contracts.Cid
 import workshop.saga.contracts.Envelope
 import workshop.saga.contracts.MessageCodec
 import workshop.saga.contracts.Simulation
@@ -23,6 +24,7 @@ class OutboxRepository(private val jdbc: JdbcClient) {
                 type = envelope.type,
                 payload = MessageCodec.encode(envelope.message),
                 simulation = envelope.simulation,
+                cid = envelope.cid,
             ),
             delay,
         )
@@ -34,8 +36,8 @@ class OutboxRepository(private val jdbc: JdbcClient) {
     fun save(record: OutboxRecord, delay: Duration = Duration.ZERO) {
         jdbc.sql(
             """
-            insert into outbox (id, topic, message_key, message_type, payload, simulate, available_at)
-            values (:id, :topic, :key, :type, :payload, :simulate, now() + make_interval(secs => :delaySeconds))
+            insert into outbox (id, topic, message_key, message_type, payload, simulate, cid, available_at)
+            values (:id, :topic, :key, :type, :payload, :simulate, :cid, now() + make_interval(secs => :delaySeconds))
             """,
         )
             .param("id", record.messageId)
@@ -44,6 +46,7 @@ class OutboxRepository(private val jdbc: JdbcClient) {
             .param("type", record.type)
             .param("payload", record.payload)
             .param("simulate", record.simulation?.name)
+            .param("cid", record.cid?.value)
             .param("delaySeconds", delay.toMillis() / 1000.0)
             .update()
     }
@@ -55,7 +58,7 @@ class OutboxRepository(private val jdbc: JdbcClient) {
     fun lockPending(limit: Int): List<OutboxRecord> =
         jdbc.sql(
             """
-            select id, topic, message_key, message_type, payload, simulate
+            select id, topic, message_key, message_type, payload, simulate, cid
             from outbox
             where published_at is null and available_at <= now()
             order by created_at
@@ -72,6 +75,7 @@ class OutboxRepository(private val jdbc: JdbcClient) {
                     type = rs.getString("message_type"),
                     payload = rs.getString("payload"),
                     simulation = rs.getString("simulate")?.let(Simulation::valueOf),
+                    cid = rs.getString("cid")?.let(::Cid),
                 )
             }
             .list()

@@ -11,7 +11,7 @@ class DeadLetterTest {
     private val dead = DeadLetter(
         id = 7, deadLetterTopic = "pix.commands.DLT", originalTopic = "pix.commands", key = "1042",
         messageId = null, messageType = "SendPix", payload = "{}", error = "PixProcessingException: falha",
-        transferId = 1042, status = DeadLetterStatus.NEW, receivedAt = now,
+        transferId = 1042, cid = "TRF-1042.PIX-c3", status = DeadLetterStatus.NEW, receivedAt = now,
     )
 
     @Test

@@ -29,6 +29,7 @@ data class DeadLetter(
     val payload: String,
     val error: String,
     val transferId: Long?,
+    val cid: String?,
     val status: DeadLetterStatus,
     val receivedAt: Instant,
     val rescue: Rescue? = null,
