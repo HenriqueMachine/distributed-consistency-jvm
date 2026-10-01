@@ -41,6 +41,9 @@ logging:
 
 saga:
   timeouts:
-    # Quanto esperar pelo débito, e quantas vezes perguntar antes de NEEDS_ATTENTION.
+    # Quanto esperar por cada passo, e quantas vezes perguntar antes de NEEDS_ATTENTION.
     debit: 8s
+    # O Pix precisa caber o retry do consumidor (1 s + 2 s + 4 s) antes da DLT.
+    pix: 12s
+    refund: 8s
     max-attempts: 3

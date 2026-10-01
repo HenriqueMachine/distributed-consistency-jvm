@@ -13,4 +13,9 @@ class KafkaTopicsConfig {
     /** Comandos de débito e estorno. */
     @Bean
     fun accountCommands(): NewTopic = TopicBuilder.name(Topics.ACCOUNT_COMMANDS).partitions(Topics.PARTITIONS).build()
+
+    /** DLT de `account.commands`, com as mesmas partições: o recoverer publica na partição de origem. */
+    @Bean
+    fun accountCommandsDeadLetter(): NewTopic =
+        TopicBuilder.name(Topics.deadLetterOf(Topics.ACCOUNT_COMMANDS)).partitions(Topics.PARTITIONS).build()
 }

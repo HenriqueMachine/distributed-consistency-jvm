@@ -23,7 +23,14 @@ import kotlin.test.assertIs
 class SagaStateMachineTest {
 
     private val now = Instant.parse("2026-10-01T12:00:00Z")
-    private val machine = SagaStateMachine(SagaTimeouts(debit = Duration.ofSeconds(8), maxAttempts = 3))
+    private val machine = SagaStateMachine(
+        SagaTimeouts(
+            debit = Duration.ofSeconds(8),
+            pix = Duration.ofSeconds(12),
+            refund = Duration.ofSeconds(8),
+            maxAttempts = 3,
+        ),
+    )
     private val transfer = Transfer(TransferId(1042), "ana", "henrique", Money(15_000))
 
     private fun sagaIn(state: SagaState, deadlineAt: Instant? = null, attempts: Int = 1) =
@@ -47,6 +54,7 @@ class SagaStateMachineTest {
 
         assertEquals(PIX_PENDING, decision.saga.state)
         assertEquals(listOf(SendPix(1042, "henrique", 15_000)), decision.commands)
+        assertEquals(now.plusSeconds(12), decision.saga.deadlineAt)
     }
 
     @Test
@@ -110,6 +118,27 @@ class SagaStateMachineTest {
 
         assertEquals(NEEDS_ATTENTION, decision.saga.state)
         assertEquals(emptyList(), decision.commands)
+    }
+
+    @Test
+    fun `timeout do Pix reenvia com a mesma chave e, esgotado, para em NEEDS_ATTENTION`() {
+        val retry = assertIs<Decision.Transition>(decide(sagaIn(PIX_PENDING, deadlineAt = now, attempts = 1), SagaEvent.TimedOut))
+        assertEquals(PIX_PENDING, retry.saga.state)
+        assertEquals(listOf(SendPix(1042, "henrique", 15_000)), retry.commands)
+        assertEquals(2, retry.saga.attempts)
+
+        val giveUp = assertIs<Decision.Transition>(decide(sagaIn(PIX_PENDING, deadlineAt = now, attempts = 3), SagaEvent.TimedOut))
+        assertEquals(NEEDS_ATTENTION, giveUp.saga.state)
+        assertEquals(emptyList(), giveUp.commands)
+    }
+
+    @Test
+    fun `compensacao tambem tem prazo - reenvia o estorno e, esgotado, NEEDS_ATTENTION`() {
+        val retry = assertIs<Decision.Transition>(decide(sagaIn(REFUNDING, deadlineAt = now, attempts = 1), SagaEvent.TimedOut))
+        assertEquals(listOf(RefundDebit(1042)), retry.commands)
+
+        val giveUp = assertIs<Decision.Transition>(decide(sagaIn(REFUNDING, deadlineAt = now, attempts = 3), SagaEvent.TimedOut))
+        assertEquals(NEEDS_ATTENTION, giveUp.saga.state)
     }
 
     @Test

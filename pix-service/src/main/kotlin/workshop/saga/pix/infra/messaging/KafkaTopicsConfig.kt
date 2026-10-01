@@ -13,4 +13,9 @@ class KafkaTopicsConfig {
     /** Comandos de envio de Pix. */
     @Bean
     fun pixCommands(): NewTopic = TopicBuilder.name(Topics.PIX_COMMANDS).partitions(Topics.PARTITIONS).build()
+
+    /** DLT de `pix.commands`, com as mesmas partições: o recoverer publica na partição de origem. */
+    @Bean
+    fun pixCommandsDeadLetter(): NewTopic =
+        TopicBuilder.name(Topics.deadLetterOf(Topics.PIX_COMMANDS)).partitions(Topics.PARTITIONS).build()
 }

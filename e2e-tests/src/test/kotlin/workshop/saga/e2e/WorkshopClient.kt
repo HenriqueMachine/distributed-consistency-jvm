@@ -74,6 +74,20 @@ object WorkshopClient {
     fun transitions(transferId: Long): List<TransitionView> =
         json.readValue(get("$transferUrl/transfers/$transferId/transitions").body())
 
+    /** Derruba o SPI simulado para todos por [seconds] segundos. */
+    fun startSpiOutage(seconds: Int) {
+        val response = post("$pixUrl/spi/outage?seconds=$seconds", emptyMap<String, Any>())
+        check(response.statusCode() == 200) { "POST /spi/outage devolveu ${response.statusCode()}" }
+    }
+
+    /** Traz o SPI de volta na hora. */
+    fun endSpiOutage() {
+        http.send(HttpRequest.newBuilder(URI.create("$pixUrl/spi/outage")).DELETE().build(), HttpResponse.BodyHandlers.ofString())
+    }
+
+    /** Estado do circuito `spi`: CLOSED, OPEN ou HALF_OPEN. */
+    fun spiCircuitState(): String = json.readValue<Map<String, Any?>>(get("$pixUrl/spi").body()).getValue("circuit").toString()
+
     /** Cadastra um remetente só deste teste, para que os saldos não interfiram entre testes. */
     fun newSender(balance: String = "1000.00"): String {
         val key = uniqueKey("remetente")

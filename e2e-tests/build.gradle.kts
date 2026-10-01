@@ -9,6 +9,7 @@ dependencies {
     testImplementation("tools.jackson.module:jackson-module-kotlin")
     testImplementation("org.awaitility:awaitility-kotlin")
     testImplementation("org.assertj:assertj-core")
+    testImplementation("org.apache.kafka:kafka-clients")
 }
 
 // `./gradlew test` não depende do ambiente no ar; os E2E rodam só com `./gradlew e2e`.

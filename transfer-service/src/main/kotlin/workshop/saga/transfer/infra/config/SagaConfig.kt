@@ -13,6 +13,8 @@ import java.time.Duration
 @ConfigurationProperties("saga.timeouts")
 data class SagaTimeoutProperties(
     val debit: Duration = Duration.ofSeconds(8),
+    val pix: Duration = Duration.ofSeconds(12),
+    val refund: Duration = Duration.ofSeconds(8),
     val maxAttempts: Int = 3,
 )
 
@@ -24,7 +26,14 @@ class SagaConfig {
     /** A máquina de estados com os prazos configurados. */
     @Bean
     fun sagaStateMachine(timeouts: SagaTimeoutProperties) =
-        SagaStateMachine(SagaTimeouts(debit = timeouts.debit, maxAttempts = timeouts.maxAttempts))
+        SagaStateMachine(
+            SagaTimeouts(
+                debit = timeouts.debit,
+                pix = timeouts.pix,
+                refund = timeouts.refund,
+                maxAttempts = timeouts.maxAttempts,
+            ),
+        )
 
     /** O relógio da saga; nos testes do domínio, o `now` é passado direto. */
     @Bean

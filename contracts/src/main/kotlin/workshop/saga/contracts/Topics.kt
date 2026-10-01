@@ -17,6 +17,12 @@ object Topics {
     /** Todos os tópicos têm o mesmo número de partições; chave = transferId. */
     const val PARTITIONS = 3
 
+    /**
+     * Dead Letter Topic de um tópico (slide 34). O Spring Kafka publica na **mesma partição**
+     * de origem, por isso a DLT precisa ter pelo menos [PARTITIONS] partições.
+     */
+    fun deadLetterOf(topic: String): String = "$topic.DLT"
+
     /** O tópico de cada mensagem. */
     fun of(message: Message): String = when (message) {
         is AccountCommand -> ACCOUNT_COMMANDS

@@ -23,7 +23,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,circuitbreakers
 
 logging:
   file:
@@ -32,3 +32,18 @@ logging:
   level:
     # O cliente Kafka é muito verboso em INFO; deixamos os logs para a história da saga.
     org.apache.kafka: WARN
+
+# Circuit breaker do SPI (slide 35). Passou de 50% de falhas na janela, o circuito abre e
+# pausa o consumidor; depois de 10 s ele deixa uma chamada passar para testar (HALF_OPEN).
+resilience4j:
+  circuitbreaker:
+    instances:
+      spi:
+        failure-rate-threshold: 50
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
+        record-exceptions:
+          - workshop.saga.pix.infra.spi.SpiUnavailableException

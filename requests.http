@@ -64,3 +64,12 @@ Content-Type: application/json
 X-Simulate: PIX_CRASH
 
 {"from": "ana", "to": "henrique", "amount": 150.00}
+
+### Passo 6 · SPI fora do ar por 15 s: o circuito abre e o consumidor pausa
+POST http://localhost:8083/spi/outage?seconds=15
+
+### Passo 6 · Estado do SPI e do circuito (CLOSED, OPEN, HALF_OPEN)
+GET http://localhost:8083/spi
+
+### Passo 6 · SPI de volta na hora
+DELETE http://localhost:8083/spi/outage

@@ -16,8 +16,18 @@ import workshop.saga.transfer.domain.saga.SagaState.REFUNDING
 import java.time.Duration
 import java.time.Instant
 
-/** Quanto esperar pela resposta do débito, e quantas vezes perguntar antes de desistir. */
-data class SagaTimeouts(val debit: Duration, val maxAttempts: Int) {
+/**
+ * Quanto esperar pela resposta de cada passo, e quantas vezes perguntar antes de desistir.
+ *
+ * O prazo do Pix precisa caber o retry do consumidor (1 s + 2 s + 4 s) com folga: todo
+ * timeout da saga precisa caber no lag (slide 38).
+ */
+data class SagaTimeouts(
+    val debit: Duration,
+    val pix: Duration,
+    val refund: Duration,
+    val maxAttempts: Int,
+) {
     init {
         require(maxAttempts >= 1) { "maxAttempts deve ser pelo menos 1" }
     }
@@ -31,10 +41,12 @@ data class SagaTimeouts(val debit: Duration, val maxAttempts: Int) {
  * chega como parâmetro). Quem executa a decisão é o `SagaOrchestrator`. Por isso cada
  * regra do fluxo pode ser testada em milissegundos, sem Kafka nem Postgres.
  *
- * Regras do passo 5:
- * - timeout leva a UNKNOWN, nunca a compensação automática;
- * - em UNKNOWN, reenvia o mesmo comando (mesma chave: transferId), o participante é idempotente;
- * - tentativas esgotadas levam a NEEDS_ATTENTION;
+ * Regras de falha:
+ * - todo passo pendente tem prazo; timeout nunca leva a compensação automática;
+ * - no timeout, reenvia o mesmo comando (mesma chave: transferId), o participante é
+ *   idempotente; no débito, a saga entra em DEBIT_UNKNOWN para deixar explícito o "não sei";
+ * - tentativas esgotadas levam a NEEDS_ATTENTION, inclusive na compensação
+ *   (não existe compensação da compensação, slide 22);
  * - só se compensa diante de um "não" explícito.
  */
 class SagaStateMachine(private val timeouts: SagaTimeouts) {
@@ -46,41 +58,33 @@ class SagaStateMachine(private val timeouts: SagaTimeouts) {
     fun decide(transfer: Transfer, saga: Saga, event: SagaEvent, now: Instant): Decision =
         when (saga.state) {
             CREATED -> when (event) {
-                SagaEvent.TransferPlaced -> saga.moveTo(
-                    DEBIT_PENDING,
-                    reason = "transferência criada",
-                    deadlineAt = now + timeouts.debit,
-                    attempts = 1,
-                    debitAccount(transfer),
-                )
+                SagaEvent.TransferPlaced ->
+                    saga.startStep(DEBIT_PENDING, "transferência criada", debitAccount(transfer), timeouts.debit, now)
                 else -> saga.ignore(event)
             }
 
             DEBIT_PENDING, DEBIT_UNKNOWN -> when (event) {
-                is SagaEvent.AccountDebited -> saga.moveTo(
-                    PIX_PENDING,
-                    reason = "débito aprovado debitId=${event.debitId}",
-                    command = SendPix(transfer.id.value, transfer.to, transfer.amount.cents),
-                )
-                is SagaEvent.DebitDeclined -> saga.moveTo(CANCELLED, reason = "débito recusado: ${event.reason}")
-                SagaEvent.TimedOut -> onDebitTimeout(transfer, saga, now)
+                is SagaEvent.AccountDebited ->
+                    saga.startStep(PIX_PENDING, "débito aprovado debitId=${event.debitId}", sendPix(transfer), timeouts.pix, now)
+                is SagaEvent.DebitDeclined -> saga.finish(CANCELLED, "débito recusado: ${event.reason}")
+                SagaEvent.TimedOut ->
+                    saga.retryOrGiveUp(now, timeouts.debit, retryIn = DEBIT_UNKNOWN, debitAccount(transfer), "não sei se debitou")
                 else -> saga.ignore(event)
             }
 
-            // ⚠ QUEBRA passo-5: o Pix não tem prazo. Se a resposta nunca vier, nenhum
-            // TimedOut tira a saga daqui: ela fica em PIX_PENDING para sempre.
             PIX_PENDING -> when (event) {
-                is SagaEvent.PixSettled -> saga.moveTo(COMPLETED, reason = "Pix liquidado endToEndId=${event.endToEndId}")
-                is SagaEvent.PixRejected -> saga.moveTo(
-                    REFUNDING,
-                    reason = "Pix recusado: ${event.reason}",
-                    command = RefundDebit(transfer.id.value),
-                )
+                is SagaEvent.PixSettled -> saga.finish(COMPLETED, "Pix liquidado endToEndId=${event.endToEndId}")
+                is SagaEvent.PixRejected ->
+                    saga.startStep(REFUNDING, "Pix recusado: ${event.reason}", RefundDebit(transfer.id.value), timeouts.refund, now)
+                SagaEvent.TimedOut ->
+                    saga.retryOrGiveUp(now, timeouts.pix, retryIn = PIX_PENDING, sendPix(transfer), "sem resposta do Pix")
                 else -> saga.ignore(event)
             }
 
             REFUNDING -> when (event) {
-                is SagaEvent.DebitRefunded -> saga.moveTo(CANCELLED, reason = "estorno concluído debitId=${event.debitId}")
+                is SagaEvent.DebitRefunded -> saga.finish(CANCELLED, "estorno concluído debitId=${event.debitId}")
+                SagaEvent.TimedOut ->
+                    saga.retryOrGiveUp(now, timeouts.refund, retryIn = REFUNDING, RefundDebit(transfer.id.value), "estorno sem confirmação")
                 else -> saga.ignore(event)
             }
 
@@ -88,32 +92,40 @@ class SagaStateMachine(private val timeouts: SagaTimeouts) {
         }
 
     /** Sem resposta não quer dizer "não": pergunta de novo, com a mesma chave (slide 33). */
-    private fun onDebitTimeout(transfer: Transfer, saga: Saga, now: Instant): Decision {
-        val waited = "timeout ${timeouts.debit.toSeconds()}s"
+    private fun Saga.retryOrGiveUp(
+        now: Instant,
+        timeout: Duration,
+        retryIn: SagaState,
+        command: Message,
+        doubt: String,
+    ): Decision {
+        val waited = "timeout ${timeout.toSeconds()}s"
         return when {
-            !saga.isOverdue(now) -> Decision.Ignore("TimedOut ignorado: o prazo de ${saga.state} ainda não venceu")
-            saga.attempts >= timeouts.maxAttempts -> saga.moveTo(
-                NEEDS_ATTENTION,
-                reason = "$waited sem resposta após ${saga.attempts} tentativas",
-            )
-            else -> saga.moveTo(
-                DEBIT_UNKNOWN,
-                reason = "$waited → não sei se debitou, reenviando com a mesma chave tentativa=${saga.attempts + 1}",
-                deadlineAt = now + timeouts.debit,
-                attempts = saga.attempts + 1,
-                debitAccount(transfer),
+            !isOverdue(now) -> Decision.Ignore("TimedOut ignorado: o prazo de $state ainda não venceu")
+            attempts >= timeouts.maxAttempts -> finish(NEEDS_ATTENTION, "$waited sem resposta após $attempts tentativas")
+            else -> transition(
+                to = retryIn,
+                reason = "$waited → $doubt, reenviando com a mesma chave tentativa=${attempts + 1}",
+                deadlineAt = now + timeout,
+                attempts = attempts + 1,
+                command,
             )
         }
     }
 
-    private fun debitAccount(transfer: Transfer) =
-        DebitAccount(transfer.id.value, transfer.from, transfer.amount.cents)
+    private fun debitAccount(transfer: Transfer) = DebitAccount(transfer.id.value, transfer.from, transfer.amount.cents)
 
-    /** Transição sem novo prazo: o próximo passo ainda não tem timeout. */
-    private fun Saga.moveTo(to: SagaState, reason: String, command: Message? = null) =
-        moveTo(to, reason, deadlineAt = null, attempts = 0, *listOfNotNull(command).toTypedArray())
+    private fun sendPix(transfer: Transfer) = SendPix(transfer.id.value, transfer.to, transfer.amount.cents)
 
-    private fun Saga.moveTo(
+    /** Entra num passo novo: envia o comando e começa a contar o prazo, tentativa 1. */
+    private fun Saga.startStep(to: SagaState, reason: String, command: Message, timeout: Duration, now: Instant) =
+        transition(to, reason, deadlineAt = now + timeout, attempts = 1, command)
+
+    /** Estado final: sem comando, sem prazo. */
+    private fun Saga.finish(to: SagaState, reason: String) =
+        transition(to, reason, deadlineAt = null, attempts = 0)
+
+    private fun Saga.transition(
         to: SagaState,
         reason: String,
         deadlineAt: Instant?,
