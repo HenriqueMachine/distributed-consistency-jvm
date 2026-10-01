@@ -43,3 +43,10 @@ GET http://localhost:8082/debits?transferId=1042
 
 ### Créditos do Pix da transferência
 GET http://localhost:8083/pix?transferId=1042
+
+### Passo 3 · O relay publica duas vezes (queda antes de marcar published_at)
+POST http://localhost:8081/transfers
+Content-Type: application/json
+X-Simulate: DUPLICATE
+
+{"from": "ana", "to": "henrique", "amount": 150.00}

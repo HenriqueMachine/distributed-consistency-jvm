@@ -26,7 +26,12 @@ class DebitService(
     private val refunds: RefundRepository,
     private val publisher: MessagePublisher,
 ) {
-    /** Debita a conta de origem, ou recusa se a regra não aprovar. */
+    /**
+     * Debita a conta de origem, ou recusa se a regra não aprovar.
+     *
+     * ⚠ QUEBRA passo-3: a outbox entrega pelo menos uma vez, e às vezes duas. Este método
+     * não pergunta se já debitou esta transferência: cada entrega repetida é um débito novo.
+     */
     @Transactional
     fun debit(command: DebitAccount, request: Envelope) {
         val amount = Money(command.amountInCents)

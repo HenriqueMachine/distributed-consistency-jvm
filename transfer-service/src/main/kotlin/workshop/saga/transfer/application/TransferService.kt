@@ -27,9 +27,8 @@ class TransferService(
     /**
      * Grava a transferência e dispara a saga.
      *
-     * ⚠ QUEBRA passo-2 (slide 24): o `DebitAccount` sai para o Kafka aqui dentro, mas o
-     * commit só acontece quando este método retorna. Se algo falhar entre os dois, o
-     * account-service debita uma transferência que nunca existiu.
+     * Passo 3 (slide 25): o `DebitAccount` é gravado na outbox, na mesma transação da
+     * transferência. Se algo falhar antes do commit, transferência e mensagem somem juntas.
      */
     @Transactional
     fun create(newTransfer: NewTransfer): TransferSummary {
@@ -38,7 +37,7 @@ class TransferService(
         val saga = orchestrator.start(transfer)
         failureSimulator.afterCommandsSent(transfer)
         return TransferSummary(transfer, saga.state)
-    } // o commit acontece AQUI, depois do send
+    } // o commit grava transferência, saga e outbox de uma vez; o relay publica depois
 
     /** A transferência e o estado da saga, ou nulo se ela não existir. */
     @Transactional(readOnly = true)

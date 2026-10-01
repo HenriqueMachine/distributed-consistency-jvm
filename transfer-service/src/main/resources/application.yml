@@ -3,6 +3,12 @@
 spring:
   application:
     name: transfer-service
+  task:
+    scheduling:
+      pool:
+        # Relay da outbox, varredura de timeouts e métricas não podem esperar um pelo outro:
+        # se o Kafka travar o relay, os timeouts da saga continuam andando.
+        size: 3
   datasource:
     url: jdbc:postgresql://localhost:5433/transfers
     username: workshop

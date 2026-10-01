@@ -22,7 +22,12 @@ class PixService(
     private val spi: SpiGateway,
     private val publisher: MessagePublisher,
 ) {
-    /** Liquida o Pix, ou recusa se o destino não puder receber. */
+    /**
+     * Liquida o Pix, ou recusa se o destino não puder receber.
+     *
+     * ⚠ QUEBRA passo-3: assim como no account-service, uma entrega repetida do mesmo
+     * `SendPix` liquida (e credita o destino) de novo.
+     */
     @Transactional
     fun send(command: SendPix, request: Envelope) {
         val amount = Money(command.amountInCents)

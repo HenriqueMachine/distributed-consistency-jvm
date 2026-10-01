@@ -16,7 +16,10 @@ class SimulatedFailureException(val transferId: TransferId, message: String) : R
 @Component
 class FailureSimulator {
 
-    /** `CRASH_AFTER_SEND`: o comando já foi publicado e o commit do banco não acontece. */
+    /**
+     * `CRASH_AFTER_SEND`: o comando já foi "enviado" e o commit do banco não acontece.
+     * Desde o passo 3, enviar é gravar na outbox, então o rollback leva a mensagem junto.
+     */
     fun afterCommandsSent(transfer: Transfer) {
         if (transfer.simulation == Simulation.CRASH_AFTER_SEND) {
             log.warn("transferência {} simulate=CRASH_AFTER_SEND: caindo depois do send, antes do commit", transfer.id)

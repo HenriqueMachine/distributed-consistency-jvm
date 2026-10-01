@@ -8,6 +8,9 @@ package workshop.saga.contracts
 enum class Simulation {
     /** transfer-service: publica o comando e cai antes do commit (escrita dupla, passo 2). */
     CRASH_AFTER_SEND,
+
+    /** relay da outbox: publica a mesma linha duas vezes, como se caísse antes de marcar (passo 3). */
+    DUPLICATE,
     ;
 
     companion object {
