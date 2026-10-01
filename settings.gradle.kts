@@ -11,5 +11,6 @@ include(
     "transfer-service",
     "account-service",
     "pix-service",
+    "mortician-service",
     "e2e-tests",
 )

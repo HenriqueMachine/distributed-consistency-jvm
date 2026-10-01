@@ -18,6 +18,9 @@ enum class SagaState {
     COMPLETED,
     CANCELLED,
 
-    /** Tentativas esgotadas: a saga para e uma pessoa precisa olhar. */
+    /**
+     * Tentativas esgotadas: a saga para e uma pessoa precisa olhar. Se ela resgatar a
+     * mensagem da DLT pelo Mortician (passo 7), a resposta de sucesso que chegar conclui a saga.
+     */
     NEEDS_ATTENTION,
 }

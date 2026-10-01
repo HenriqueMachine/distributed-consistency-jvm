@@ -151,5 +151,15 @@ class SagaStateMachineTest {
         assertIs<Decision.Ignore>(decide(sagaIn(CANCELLED), SagaEvent.AccountDebited("d-1")))
         assertIs<Decision.Ignore>(decide(sagaIn(COMPLETED), SagaEvent.PixSettled("E1042")))
         assertIs<Decision.Ignore>(decide(sagaIn(NEEDS_ATTENTION), SagaEvent.AccountDebited("d-1")))
+        assertIs<Decision.Ignore>(decide(sagaIn(NEEDS_ATTENTION), SagaEvent.TimedOut))
+    }
+
+    @Test
+    fun `resgate pelo Mortician - sucesso que chega em NEEDS_ATTENTION conclui a saga`() {
+        val settled = assertIs<Decision.Transition>(decide(sagaIn(NEEDS_ATTENTION), SagaEvent.PixSettled("E1042")))
+        assertEquals(COMPLETED, settled.saga.state)
+
+        val refunded = assertIs<Decision.Transition>(decide(sagaIn(NEEDS_ATTENTION), SagaEvent.DebitRefunded("d-1")))
+        assertEquals(CANCELLED, refunded.saga.state)
     }
 }

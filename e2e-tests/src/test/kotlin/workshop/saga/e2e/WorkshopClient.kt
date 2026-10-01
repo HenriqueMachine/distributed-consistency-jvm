@@ -35,6 +35,18 @@ data class TransitionView(
     val appVersion: String,
 )
 
+/** Mensagem morta como o Mortician devolve em `/dead-letters`. */
+data class DeadLetterView(
+    val id: Long,
+    val transferId: Long?,
+    val status: String,
+    val originalTopic: String,
+    val messageType: String?,
+    val error: String,
+    val republishedBy: String?,
+    val republishReason: String?,
+)
+
 /** Participante como o account-service devolve em `/participants`. */
 data class ParticipantView(val pixKey: String, val name: String, val balance: BigDecimal)
 
@@ -46,6 +58,7 @@ object WorkshopClient {
     private val transferUrl = System.getenv("TRANSFER_URL") ?: "http://localhost:8081"
     private val accountUrl = System.getenv("ACCOUNT_URL") ?: "http://localhost:8082"
     private val pixUrl = System.getenv("PIX_URL") ?: "http://localhost:8083"
+    private val morticianUrl = System.getenv("MORTICIAN_URL") ?: "http://localhost:8084"
     private val http = HttpClient.newHttpClient()
     private val json = jacksonObjectMapper()
 
@@ -73,6 +86,14 @@ object WorkshopClient {
 
     fun transitions(transferId: Long): List<TransitionView> =
         json.readValue(get("$transferUrl/transfers/$transferId/transitions").body())
+
+    /** As mensagens mortas da transferência, das mais novas para as mais antigas. */
+    fun deadLetters(transferId: Long): List<DeadLetterView> =
+        json.readValue(get("$morticianUrl/dead-letters?transferId=$transferId").body())
+
+    /** Republica uma mensagem morta; devolve o status HTTP. */
+    fun republish(deadLetterId: Long, reason: String): Int =
+        post("$morticianUrl/dead-letters/$deadLetterId/republish", mapOf("reason" to reason, "requestedBy" to "e2e")).statusCode()
 
     /** Derruba o SPI simulado para todos por [seconds] segundos. */
     fun startSpiOutage(seconds: Int) {

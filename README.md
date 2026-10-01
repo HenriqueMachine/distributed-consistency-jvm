@@ -62,7 +62,8 @@ docker compose up -d && ./gradlew bootRun --parallel
 | http://localhost:8080 | Kafka UI: tópicos, mensagens, headers, consumer groups e lag |
 | http://localhost:8081 | transfer-service (`POST /transfers`, `GET /transfers/{id}`) |
 | http://localhost:8082 | account-service (`POST/GET /participants`) |
-| http://localhost:8083 | pix-service |
+| http://localhost:8083 | pix-service (`GET /spi`, `POST /spi/outage`) |
+| http://localhost:8084 | mortician-service (`GET /dead-letters`, `POST /dead-letters/{id}/republish`), a partir do passo 7 |
 
 O [`requests.http`](requests.http) tem todas as requisições prontas para o IntelliJ ou para a
 extensão REST Client do VS Code.

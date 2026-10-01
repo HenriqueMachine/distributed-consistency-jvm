@@ -46,6 +46,7 @@ class OutboxRelay(
     /** `DUPLICATE` simula a queda entre publicar e marcar: a mesma linha sai duas vezes. */
     private fun timesToPublish(record: OutboxRecord): Int =
         if (record.simulation == Simulation.DUPLICATE) {
+            // ⚠ QUEBRA passo-7: esta linha não diz de qual transferência é a mensagem.
             log.warn(
                 "relay simulate=DUPLICATE: {} messageId={} publicado 2× (queda antes de marcar published_at)",
                 record.type, record.messageId,

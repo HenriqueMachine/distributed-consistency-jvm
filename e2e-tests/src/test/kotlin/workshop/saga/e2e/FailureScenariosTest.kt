@@ -60,7 +60,7 @@ class FailureScenariosTest {
     }
 
     @Test
-    fun `quebra passo-6 - PIX_CRASH - retry, DLT a cada tentativa e NEEDS_ATTENTION, e a mensagem so existe na DLT`() {
+    fun `PIX_CRASH - retry com backoff, DLT a cada tentativa da saga e NEEDS_ATTENTION`() {
         val transfer = createTransfer(from = newSender(), simulate = "PIX_CRASH")
 
         // 3 tentativas da saga × (1 s + 2 s + 4 s de retry) com prazo de 12 s cada.

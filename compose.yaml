@@ -6,8 +6,8 @@
 #   docker compose --profile apps up -d --build  tudo no Docker, para quem não tem JDK
 #
 # Portas no host:
-#   8080 Kafka UI · 8081 transfer · 8082 account · 8083 pix
-#   9094 Kafka · 5433 transfers-db · 5434 accounts-db · 5435 pix-db
+#   8080 Kafka UI · 8081 transfer · 8082 account · 8083 pix · 8084 mortician
+#   9094 Kafka · 5433 transfers-db · 5434 accounts-db · 5435 pix-db · 5436 mortician-db
 name: distributed-consistency-jvm
 
 x-postgres: &postgres
@@ -97,6 +97,14 @@ services:
       <<: *postgres-env
       POSTGRES_DB: pix
 
+  mortician-db:
+    <<: *postgres
+    ports:
+      - "5436:5432"
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: mortician
+
   transfer-service:
     <<: *service
     build:
@@ -147,3 +155,20 @@ services:
     environment:
       <<: *service-env
       SPRING_DATASOURCE_URL: jdbc:postgresql://pix-db:5432/pix
+
+  mortician-service:
+    <<: *service
+    build:
+      <<: *service-build
+      args:
+        SERVICE: mortician-service
+    ports:
+      - "8084:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mortician-db:
+        condition: service_healthy
+    environment:
+      <<: *service-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://mortician-db:5432/mortician

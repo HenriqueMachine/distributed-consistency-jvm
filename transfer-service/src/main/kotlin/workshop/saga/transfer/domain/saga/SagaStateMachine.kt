@@ -47,7 +47,8 @@ data class SagaTimeouts(
  *   idempotente; no débito, a saga entra em DEBIT_UNKNOWN para deixar explícito o "não sei";
  * - tentativas esgotadas levam a NEEDS_ATTENTION, inclusive na compensação
  *   (não existe compensação da compensação, slide 22);
- * - só se compensa diante de um "não" explícito.
+ * - só se compensa diante de um "não" explícito;
+ * - em NEEDS_ATTENTION, só uma resposta de sucesso (ex.: resgate pelo Mortician) tira a saga de lá.
  */
 class SagaStateMachine(private val timeouts: SagaTimeouts) {
 
@@ -88,7 +89,15 @@ class SagaStateMachine(private val timeouts: SagaTimeouts) {
                 else -> saga.ignore(event)
             }
 
-            COMPLETED, CANCELLED, NEEDS_ATTENTION -> saga.ignore(event)
+            // Sucesso tardio (passo 7): alguém resgatou a mensagem pelo Mortician, ou a
+            // dependência voltou depois que a saga desistiu. A saga termina como teria terminado.
+            NEEDS_ATTENTION -> when (event) {
+                is SagaEvent.PixSettled -> saga.finish(COMPLETED, "Pix liquidado depois de NEEDS_ATTENTION endToEndId=${event.endToEndId}")
+                is SagaEvent.DebitRefunded -> saga.finish(CANCELLED, "estorno concluído depois de NEEDS_ATTENTION debitId=${event.debitId}")
+                else -> saga.ignore(event)
+            }
+
+            COMPLETED, CANCELLED -> saga.ignore(event)
         }
 
     /** Sem resposta não quer dizer "não": pergunta de novo, com a mesma chave (slide 33). */

@@ -14,19 +14,36 @@ import java.util.UUID
 class OutboxRepository(private val jdbc: JdbcClient) {
 
     /** Grava a mensagem para o relay publicar a partir de agora + [delay]. */
-    fun save(envelope: Envelope, delay: Duration = Duration.ZERO) {
+    fun save(envelope: Envelope, delay: Duration = Duration.ZERO) =
+        save(
+            OutboxRecord(
+                messageId = envelope.messageId,
+                topic = Topics.of(envelope.message),
+                key = envelope.transferId.toString(),
+                type = envelope.type,
+                payload = MessageCodec.encode(envelope.message),
+                simulation = envelope.simulation,
+            ),
+            delay,
+        )
+
+    /**
+     * Grava uma mensagem já pronta (tópico, chave, tipo e payload crus). É o que o Mortician
+     * usa para republicar uma mensagem da DLT no tópico original (passo 7).
+     */
+    fun save(record: OutboxRecord, delay: Duration = Duration.ZERO) {
         jdbc.sql(
             """
             insert into outbox (id, topic, message_key, message_type, payload, simulate, available_at)
             values (:id, :topic, :key, :type, :payload, :simulate, now() + make_interval(secs => :delaySeconds))
             """,
         )
-            .param("id", envelope.messageId)
-            .param("topic", Topics.of(envelope.message))
-            .param("key", envelope.transferId.toString())
-            .param("type", envelope.type)
-            .param("payload", MessageCodec.encode(envelope.message))
-            .param("simulate", envelope.simulation?.name)
+            .param("id", record.messageId)
+            .param("topic", record.topic)
+            .param("key", record.key)
+            .param("type", record.type)
+            .param("payload", record.payload)
+            .param("simulate", record.simulation?.name)
             .param("delaySeconds", delay.toMillis() / 1000.0)
             .update()
     }

@@ -56,9 +56,8 @@ class KafkaErrorHandlingConfig {
         return ConsumerRecordRecoverer { record, exception ->
             publisher.accept(record, exception)
             val invalidPayload = exception.causeOfType<InvalidPayloadException>()
-            // ⚠ QUEBRA passo-6: a mensagem vai para a DLT e a história para aqui. Nenhum
-            // serviço a guarda, ninguém é avisado, e reprocessar é "na mão" com o
-            // kafka-console. A DLT vira lixeira (slide 36).
+            // ⚠ QUEBRA passo-7: aqui a transferência aparece só como a chave crua. As linhas que
+            // o próprio Spring Kafka loga entre os retries não dizem de qual transferência são.
             log.error(
                 "{} falha {} → {}: {}",
                 record.key(),

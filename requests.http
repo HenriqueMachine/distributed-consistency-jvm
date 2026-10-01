@@ -73,3 +73,15 @@ GET http://localhost:8083/spi
 
 ### Passo 6 · SPI de volta na hora
 DELETE http://localhost:8083/spi/outage
+
+### Passo 7 · Mortician: mensagens mortas da transferência
+GET http://localhost:8084/dead-letters?transferId=1042
+
+### Passo 7 · Investigar uma mensagem morta
+GET http://localhost:8084/dead-letters/1
+
+### Passo 7 · Resgatar: republica no tópico original, pela outbox
+POST http://localhost:8084/dead-letters/1/republish
+Content-Type: application/json
+
+{"reason": "bug do PIX_CRASH corrigido no deploy", "requestedBy": "henrique"}
