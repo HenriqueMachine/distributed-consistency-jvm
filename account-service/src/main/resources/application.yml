@@ -39,5 +39,5 @@ logging:
 
 simulation:
   debit-slow:
-    # Quanto a resposta fica retida com X-Simulate: DEBIT_SLOW (slide 33: chega aos 15 s).
+    # Quanto a resposta fica retida com X-Simulate: DEBIT_SLOW (slide 34: chega aos 15 s).
     delay: 15s

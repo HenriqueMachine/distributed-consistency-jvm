@@ -162,7 +162,7 @@ As simulações ficam fora das regras de negócio: um `FailureSimulator` por ser
 A cada passo, o E2E do passo traz um teste que **documenta a quebra**, e o passo seguinte
 inverte a asserção.
 
-## Circuit breaker (passo 6, slide 35)
+## Circuit breaker (passo 6, slide 36)
 
 - O `pix-service` chama o `SpiGateway` através do circuit breaker `spi` (Resilience4j,
   configurado em `resilience4j.circuitbreaker.instances.spi.*` no `application.yml`).
@@ -172,7 +172,7 @@ inverte a asserção.
   UI. Em HALF_OPEN, ele é retomado para testar; se fechar, a fila escoa.
 - O prazo do passo Pix da saga cabe a indisponibilidade padrão da demonstração.
 
-## Mortician (passo 7, slide 37)
+## Mortician (passo 7, slide 38)
 
 - `@KafkaListener(topicPattern = ".*\\.DLT")`, grupo próprio. Grava em `dead_letters`:
   tópico original, chave, payload, headers, exceção, `transferId`, `cid` e status
@@ -184,7 +184,7 @@ inverte a asserção.
   cobre a repetição), e **sem** o header `simulate`: é a "correção do bug". Cada resgate
   registra quem, quando e por quê, e só acontece uma vez por mensagem morta.
 
-## Observabilidade (passo 8, slides 40–41)
+## Observabilidade (passo 8, slides 41–42)
 
 - Correlation id em árvore no header `x-cid`. A raiz é `TRF-1042`. O orquestrador cria
   um filho por comando (`TRF-1042.DEB-a1`, `TRF-1042.DEB-b7` no reenvio,

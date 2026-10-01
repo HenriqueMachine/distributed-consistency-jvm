@@ -18,7 +18,7 @@ import java.util.UUID
 /** A mensagem pedida não existe. */
 class DeadLetterNotFoundException(id: Long) : RuntimeException("dead letter $id não existe")
 
-/** Casos de uso do Mortician: enterrar, listar, investigar e republicar (slide 37). */
+/** Casos de uso do Mortician: enterrar, listar, investigar e republicar (slide 38). */
 @Service
 class DeadLetterService(
     private val deadLetters: DeadLetterRepository,
@@ -52,7 +52,7 @@ class DeadLetterService(
     @Transactional
     fun republish(id: Long, by: String, reason: String): DeadLetter {
         val rescued = get(id).republish(by, reason, clock.instant())
-        // O resgate é um nó novo na árvore de correlação: ….PIX-c3.RPB-9d (slide 41).
+        // O resgate é um nó novo na árvore de correlação: ….PIX-c3.RPB-9d (slide 42).
         val cid = rescued.cid?.let { Cid(it).child("RPB") }
         val republish = {
             republishThroughOutbox(rescued, cid)

@@ -15,7 +15,7 @@ import workshop.saga.e2e.WorkshopClient.spiCircuitState
 import workshop.saga.e2e.WorkshopClient.startSpiOutage
 import java.time.Duration
 
-/** Passo 6 (slide 35): o SPI cai para todos, o circuito abre, e nada vai para a DLT. */
+/** Passo 6 (slide 36): o SPI cai para todos, o circuito abre, e nada vai para a DLT. */
 class CircuitBreakerTest {
 
     @AfterEach

@@ -37,7 +37,7 @@ logging:
     # (linhas sem contexto ficam como estão). É o que faz o grep da apresentação funcionar.
     correlation: "%replace(transferId=%X{transferId} ){'^transferId= $', ''}%replace(cid=%X{cid} ){'^cid= $', ''}"
 
-# Circuit breaker do SPI (slide 35). Passou de 50% de falhas na janela, o circuito abre e
+# Circuit breaker do SPI (slide 36). Passou de 50% de falhas na janela, o circuito abre e
 # pausa o consumidor; depois de 10 s ele deixa uma chamada passar para testar (HALF_OPEN).
 resilience4j:
   circuitbreaker:

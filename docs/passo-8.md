@@ -1,6 +1,6 @@
 # Passo 8 · Observabilidade
 
-> Slides 40–41 · `git checkout passo-8`
+> Slides 41–42 · `git checkout passo-8`
 
 ## A ideia
 
@@ -15,7 +15,7 @@ Quatro peças:
 | **Transições** | todo `de → para` vira log (com motivo, tentativa e evento) e linha em `saga_transitions` |
 | **Métricas** | transições, sagas por estado (UNKNOWN, NEEDS_ATTENTION), mensagens na DLT, circuito do SPI |
 
-### Correlation id em árvore (slide 41)
+### Correlation id em árvore (slide 42)
 
 Quem produz a próxima mensagem acrescenta um segmento ao id. O id conta o caminho:
 

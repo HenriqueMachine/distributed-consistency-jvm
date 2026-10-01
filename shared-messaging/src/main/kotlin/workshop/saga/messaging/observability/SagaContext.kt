@@ -7,7 +7,7 @@ import workshop.saga.contracts.Cid
  * Coloca a transferência e o correlation id no MDC (Mapped Diagnostic Context) da thread
  * atual. Enquanto o bloco roda, **toda** linha de log da thread, inclusive as do Spring e
  * do Kafka, sai com `transferId=1042 cid=TRF-1042.DEB-a1`. É o que faz um grep contar a
- * história inteira (slide 40).
+ * história inteira (slide 41).
  */
 object SagaContext {
     /** Chave do MDC com o id da transferência. */

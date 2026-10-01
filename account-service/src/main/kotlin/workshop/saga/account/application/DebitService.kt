@@ -24,7 +24,7 @@ import java.time.Duration
 /**
  * Casos de uso do account-service na saga: debitar e estornar, respondendo ao orquestrador.
  *
- * Idempotente nas duas camadas do slide 30: a [Inbox] descarta a mesma mensagem entregue
+ * Idempotente nas duas camadas do slide 31: a [Inbox] descarta a mesma mensagem entregue
  * de novo; e um débito (ou estorno) já existente devolve o resultado anterior em vez de
  * repetir o efeito.
  */

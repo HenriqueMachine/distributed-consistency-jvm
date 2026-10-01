@@ -1,6 +1,6 @@
 # Passo 5 · Timeout = "não sei"
 
-> Slides 32–33 · `git checkout passo-5`
+> Slides 33–34 · `git checkout passo-5`
 
 ## A ideia
 
@@ -63,7 +63,7 @@ curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
 ```
 
 O resultado foi um débito, nenhum estorno e a transferência concluída. É a linha do tempo
-do slide 33.
+do slide 34.
 
 ## Quebre
 
