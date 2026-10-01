@@ -9,6 +9,12 @@ spring:
     password: workshop
   kafka:
     bootstrap-servers: localhost:9094
+    consumer:
+      group-id: pix-service
+      auto-offset-reset: earliest
+    listener:
+      # Commit do offset depois de cada mensagem processada: at-least-once (slide 27).
+      ack-mode: record
 
 server:
   port: 8083

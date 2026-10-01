@@ -7,6 +7,7 @@ rootProject.name = "distributed-consistency-jvm"
 
 include(
     "contracts",
+    "shared-messaging",
     "transfer-service",
     "account-service",
     "pix-service",

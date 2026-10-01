@@ -1,6 +1,7 @@
 package workshop.saga.transfer.domain
 
 import workshop.saga.contracts.Money
+import workshop.saga.contracts.Simulation
 
 /** Identificador da transferência. Também é a chave de toda mensagem Kafka da saga. */
 @JvmInline
@@ -16,6 +17,7 @@ data class NewTransfer(
     val from: String,
     val to: String,
     val amount: Money,
+    val simulation: Simulation? = null,
 ) {
     init {
         require(from.isNotBlank()) { "from é obrigatório" }
@@ -25,10 +27,15 @@ data class NewTransfer(
     }
 }
 
-/** Transferência gravada. É um dado de negócio; o andamento do processo fica na [saga.Saga]. */
+/**
+ * Transferência gravada. É um dado de negócio; o andamento do processo fica na [saga.Saga].
+ *
+ * [simulation] é a falha pedida em `X-Simulate`. Ela acompanha todo comando desta transferência.
+ */
 data class Transfer(
     val id: TransferId,
     val from: String,
     val to: String,
     val amount: Money,
+    val simulation: Simulation? = null,
 )

@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":contracts"))
+    implementation(project(":shared-messaging"))
 }

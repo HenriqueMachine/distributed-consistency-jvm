@@ -24,6 +24,22 @@ class AccountRepository(private val jdbc: JdbcClient) {
             .param("balance", account.balance.cents)
             .update() == 1
 
+    /** Lê a conta e trava a linha até o fim da transação; nula se a chave não existir. */
+    fun lockByKey(pixKey: String): Account? =
+        jdbc.sql("select pix_key, name, balance_cents from accounts where pix_key = :pixKey for update")
+            .param("pixKey", pixKey)
+            .query { rs, _ -> rs.toAccount() }
+            .optional()
+            .orElse(null)
+
+    /** Grava o novo saldo. */
+    fun updateBalance(account: Account) {
+        jdbc.sql("update accounts set balance_cents = :balance where pix_key = :pixKey")
+            .param("pixKey", account.pixKey)
+            .param("balance", account.balance.cents)
+            .update()
+    }
+
     /** Todas as contas, em ordem de cadastro. */
     fun findAll(): List<Account> =
         jdbc.sql("select pix_key, name, balance_cents from accounts order by created_at, pix_key")

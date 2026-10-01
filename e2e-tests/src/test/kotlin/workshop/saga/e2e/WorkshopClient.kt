@@ -17,6 +17,24 @@ import java.util.UUID
 /** Transferência como o transfer-service devolve em `GET /transfers/{id}`. */
 data class TransferView(val id: Long, val from: String, val to: String, val amount: BigDecimal, val state: String)
 
+/** Extrato do account-service (`GET /debits?transferId=`). */
+data class StatementView(val transferId: Long, val debits: List<Entry>, val refunds: List<Entry>) {
+    data class Entry(val debitId: String, val amount: BigDecimal)
+}
+
+/** Crédito feito pelo pix-service (`GET /pix?transferId=`). */
+data class PixCreditView(val to: String, val amount: BigDecimal, val endToEndId: String)
+
+/** Uma linha de `saga_transitions` (`GET /transfers/{id}/transitions`). */
+data class TransitionView(
+    val from: String,
+    val to: String,
+    val reason: String,
+    val eventId: String?,
+    val cid: String,
+    val appVersion: String,
+)
+
 /** Participante como o account-service devolve em `/participants`. */
 data class ParticipantView(val pixKey: String, val name: String, val balance: BigDecimal)
 
@@ -27,13 +45,41 @@ data class ParticipantView(val pixKey: String, val name: String, val balance: Bi
 object WorkshopClient {
     private val transferUrl = System.getenv("TRANSFER_URL") ?: "http://localhost:8081"
     private val accountUrl = System.getenv("ACCOUNT_URL") ?: "http://localhost:8082"
+    private val pixUrl = System.getenv("PIX_URL") ?: "http://localhost:8083"
     private val http = HttpClient.newHttpClient()
     private val json = jacksonObjectMapper()
 
-    fun createTransfer(from: String = "ana", to: String = "henrique", amount: String = "150.00"): TransferView {
-        val response = post("$transferUrl/transfers", mapOf("from" to from, "to" to to, "amount" to BigDecimal(amount)))
+    fun createTransfer(
+        from: String,
+        to: String = "henrique",
+        amount: String = "150.00",
+        simulate: String? = null,
+    ): TransferView {
+        val response = postTransfer(from, to, amount, simulate)
         check(response.statusCode() == 201) { "POST /transfers devolveu ${response.statusCode()}: ${response.body()}" }
         return json.readValue(response.body())
+    }
+
+    /** Para simulações que derrubam o request: devolve o `transferId` informado no erro. */
+    fun createTransferExpectingFailure(from: String, simulate: String): Long {
+        val response = postTransfer(from, "henrique", "150.00", simulate)
+        check(response.statusCode() == 500) { "esperava 500, veio ${response.statusCode()}: ${response.body()}" }
+        return json.readValue<Map<String, Any>>(response.body()).getValue("transferId").toString().toLong()
+    }
+
+    fun statement(transferId: Long): StatementView = json.readValue(get("$accountUrl/debits?transferId=$transferId").body())
+
+    fun pixCredits(transferId: Long): List<PixCreditView> = json.readValue(get("$pixUrl/pix?transferId=$transferId").body())
+
+    fun transitions(transferId: Long): List<TransitionView> =
+        json.readValue(get("$transferUrl/transfers/$transferId/transitions").body())
+
+    /** Cadastra um remetente só deste teste, para que os saldos não interfiram entre testes. */
+    fun newSender(balance: String = "1000.00"): String {
+        val key = uniqueKey("remetente")
+        val response = registerParticipant("Remetente de teste", key, balance)
+        check(response.statusCode() == 201) { "não cadastrou $key: ${response.body()}" }
+        return key
     }
 
     fun transfer(id: Long): TransferView? {
@@ -57,6 +103,13 @@ object WorkshopClient {
         await atMost timeout untilCallTo { transfer(id) } matches { it?.state == state }
         return checkNotNull(transfer(id))
     }
+
+    private fun postTransfer(from: String, to: String, amount: String, simulate: String?): HttpResponse<String> =
+        post(
+            "$transferUrl/transfers",
+            mapOf("from" to from, "to" to to, "amount" to BigDecimal(amount)),
+            listOfNotNull(simulate?.let { "X-Simulate" to it }).toMap(),
+        )
 
     private fun post(url: String, body: Any, headers: Map<String, String> = emptyMap()): HttpResponse<String> {
         val request = HttpRequest.newBuilder(URI.create(url))

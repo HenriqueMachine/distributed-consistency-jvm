@@ -7,11 +7,39 @@ Content-Type: application/json
 
 {"name": "Maria Souza", "pixKey": "maria", "balance": 1000.00}
 
-### Transferência: Ana → Henrique, R$ 150,00
+### Caminho feliz: CREATED → DEBIT_PENDING → PIX_PENDING → COMPLETED
 POST http://localhost:8081/transfers
 Content-Type: application/json
 
 {"from": "ana", "to": "henrique", "amount": 150.00}
 
+### Conta destino encerrada: PIX_PENDING → REFUNDING → CANCELLED
+POST http://localhost:8081/transfers
+Content-Type: application/json
+
+{"from": "ana", "to": "conta-encerrada", "amount": 150.00}
+
+### Saldo insuficiente: DEBIT_PENDING → CANCELLED
+POST http://localhost:8081/transfers
+Content-Type: application/json
+
+{"from": "ana", "to": "henrique", "amount": 5000.00}
+
+### Passo 2 · Escrita dupla: o send sai, o commit falha
+POST http://localhost:8081/transfers
+Content-Type: application/json
+X-Simulate: CRASH_AFTER_SEND
+
+{"from": "ana", "to": "henrique", "amount": 150.00}
+
 ### Consultar a transferência
 GET http://localhost:8081/transfers/1042
+
+### Por que a 1042 terminou assim? (saga_transitions)
+GET http://localhost:8081/transfers/1042/transitions
+
+### Extrato da transferência: débitos e estornos
+GET http://localhost:8082/debits?transferId=1042
+
+### Créditos do Pix da transferência
+GET http://localhost:8083/pix?transferId=1042

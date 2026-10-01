@@ -3,6 +3,7 @@ package workshop.saga.transfer.infra.persistence
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Repository
 import workshop.saga.contracts.Money
+import workshop.saga.contracts.Simulation
 import workshop.saga.transfer.domain.NewTransfer
 import workshop.saga.transfer.domain.Transfer
 import workshop.saga.transfer.domain.TransferId
@@ -16,22 +17,23 @@ class TransferRepository(private val jdbc: JdbcClient) {
     fun insert(newTransfer: NewTransfer): Transfer {
         val id = jdbc.sql(
             """
-            insert into transfers (from_key, to_key, amount_cents)
-            values (:from, :to, :amountCents)
+            insert into transfers (from_key, to_key, amount_cents, simulate)
+            values (:from, :to, :amountCents, :simulate)
             returning id
             """,
         )
             .param("from", newTransfer.from)
             .param("to", newTransfer.to)
             .param("amountCents", newTransfer.amount.cents)
+            .param("simulate", newTransfer.simulation?.name)
             .query(Long::class.java)
             .single()
-        return Transfer(TransferId(id), newTransfer.from, newTransfer.to, newTransfer.amount)
+        return Transfer(TransferId(id), newTransfer.from, newTransfer.to, newTransfer.amount, newTransfer.simulation)
     }
 
     /** A transferência, ou nulo se não existir. */
     fun findById(id: TransferId): Transfer? =
-        jdbc.sql("select id, from_key, to_key, amount_cents from transfers where id = :id")
+        jdbc.sql("select id, from_key, to_key, amount_cents, simulate from transfers where id = :id")
             .param("id", id.value)
             .query { rs, _ -> rs.toTransfer() }
             .optional()
@@ -42,5 +44,6 @@ class TransferRepository(private val jdbc: JdbcClient) {
         from = getString("from_key"),
         to = getString("to_key"),
         amount = Money(getLong("amount_cents")),
+        simulation = getString("simulate")?.let(Simulation::valueOf),
     )
 }
