@@ -1,6 +1,6 @@
 # Passo 2 · Saga orquestrada
 
-> Slides 20–24 · `git checkout passo-2`
+> Slides 21–25 · `git checkout passo-2`
 
 ## A ideia
 
@@ -15,11 +15,11 @@ COMPENSAÇÃO     PIX_PENDING → REFUNDING → CANCELLED      (conta destino en
 
 Três ideias de produção entram juntas:
 
-- **A saga é uma função pura** (slide 21): `decide(transferência, saga, evento, agora)`
+- **A saga é uma função pura** (slide 22): `decide(transferência, saga, evento, agora)`
   devolve o novo estado e os comandos. Sem Kafka, banco ou relógio lá dentro.
-- **Compensar não é desfazer** (slide 22): o estorno é uma linha nova no extrato, e o
+- **Compensar não é desfazer** (slide 23): o estorno é uma linha nova no extrato, e o
   débito continua lá.
-- **Fatos não se apagam** (slide 23): cada transição vira uma linha em `saga_transitions`,
+- **Fatos não se apagam** (slide 24): cada transição vira uma linha em `saga_transitions`,
   com motivo, evento, cid e a versão do código que decidiu.
 
 ## O que mudou no código
@@ -113,7 +113,7 @@ curl -s 'localhost:8082/debits?transferId=1043'                          # 1 dé
 [transfer] transferência 1043 não existe: AccountDebited ignorado
 ```
 
-A Ana foi debitada por uma transferência que não existe (cenário A do slide 24).
+A Ana foi debitada por uma transferência que não existe (cenário A do slide 25).
 
 Inverter a ordem (commit primeiro, `send` depois) não resolve: se a aplicação cair entre
 os dois, a transferência fica em `DEBIT_PENDING` sem que nenhuma mensagem tenha saído

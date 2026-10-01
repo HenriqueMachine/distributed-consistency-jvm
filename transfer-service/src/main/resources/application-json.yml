@@ -1,4 +1,4 @@
-# Perfil "json": logs estruturados no formato ECS (slide 41), prontos para um agregador
+# Perfil "json": logs estruturados no formato ECS (slide 42), prontos para um agregador
 # (Elastic, Loki, Datadog...). O transferId e o cid do MDC viram campos do JSON.
 #   SPRING_PROFILES_ACTIVE=json ./gradlew bootRun --parallel
 logging:

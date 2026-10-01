@@ -1,6 +1,6 @@
 # Laboratório · reconstrua a história pelos logs
 
-> Slide 44 · `git checkout passo-8` · 20 min · em duplas (ou acompanhando a tela)
+> Slide 45 · `git checkout passo-8` · 20 min · em duplas (ou acompanhando a tela)
 
 **Regras:** só vale `grep TRF-…` nos logs. Proibido abrir o banco.
 

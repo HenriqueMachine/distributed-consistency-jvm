@@ -12,7 +12,7 @@ value class DebitId(val value: Long) {
 data class Debit(val id: DebitId, val transferId: Long, val from: String, val amount: Money)
 
 /**
- * Um estorno: uma linha nova no extrato, e não um DELETE do débito (slide 22). As duas
+ * Um estorno: uma linha nova no extrato, e não um DELETE do débito (slide 23). As duas
  * ficam visíveis para sempre.
  */
 data class Refund(val debitId: DebitId, val transferId: Long, val amount: Money)

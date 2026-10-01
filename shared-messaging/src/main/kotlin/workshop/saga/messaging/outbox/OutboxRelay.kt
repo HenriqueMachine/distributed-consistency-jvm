@@ -11,7 +11,7 @@ import workshop.saga.contracts.Simulation
 import workshop.saga.messaging.observability.SagaContext
 
 /**
- * O "alguém envia" da caixa de saída (slide 6): lê as linhas pendentes da outbox, publica
+ * O "alguém envia" da caixa de saída (slide 7): lê as linhas pendentes da outbox, publica
  * no Kafka e marca `published_at`.
  *
  * Se o relay cair depois de publicar e antes de marcar, na volta ele publica de novo.
@@ -65,7 +65,7 @@ class OutboxRelay(
         }
 
     private companion object {
-        /** Lote por rodada: depois de uma queda, o relay não inunda o tópico (slide 39). */
+        /** Lote por rodada: depois de uma queda, o relay não inunda o tópico (slide 40). */
         const val BATCH_SIZE = 100
         val log = LoggerFactory.getLogger(OutboxRelay::class.java)
     }

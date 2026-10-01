@@ -1,6 +1,6 @@
 # Passo 7 · Mortician
 
-> Slides 37–38 · `git checkout passo-7`
+> Slides 38–39 · `git checkout passo-7`
 
 ## A ideia
 
@@ -76,7 +76,7 @@ curl -s -X POST localhost:8084/dead-letters/1/republish -H 'Content-Type: applic
 [transfer]  1042 NEEDS_ATTENTION → COMPLETED cmd=- (Pix liquidado depois de NEEDS_ATTENTION endToEndId=E1042…)
 ```
 
-É o `REPUBLISHED → PixSettled → COMPLETED` do laboratório (slide 44). Republicar a mesma
+É o `REPUBLISHED → PixSettled → COMPLETED` do laboratório (slide 45). Republicar a mesma
 mensagem de novo devolve `409`, e as outras duas mensagens mortas, se republicadas, caem na
 idempotência do pix-service.
 

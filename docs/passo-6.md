@@ -1,6 +1,6 @@
 # Passo 6 · Retry, DLT e circuit breaker
 
-> Slides 35–39 · `git checkout passo-6`
+> Slides 36–40 · `git checkout passo-6`
 
 ## A ideia
 
@@ -31,7 +31,7 @@ só precisavam esperar.
 | `application.yml` (transfer) | `pix: 12s`: o prazo do Pix cabe o retry de 7 s do consumidor |
 | `pix-service/.../infra/spi/SpiGateway.kt` | Toda chamada ao SPI passa pelo circuit breaker `spi` (Resilience4j) |
 | `pix-service/.../infra/spi/SpiCircuitBreakerListener.kt` | Circuito OPEN → `pause()` no consumidor `pix`; HALF_OPEN/CLOSED → `resume()` |
-| `pix-service/.../application.yml` | `resilience4j.circuitbreaker.instances.spi.*`, como no slide 36 |
+| `pix-service/.../application.yml` | `resilience4j.circuitbreaker.instances.spi.*`, como no slide 37 |
 | `pix-service/.../infra/web/SpiController.kt` | `POST /spi/outage?seconds=15`, `DELETE /spi/outage`, `GET /spi` |
 
 Por que as mesmas partições? O `DeadLetterPublishingRecoverer` publica na **mesma
@@ -40,7 +40,7 @@ deveria ser guardada falharia de novo.
 
 A compensação também tem prazo. Se o `RefundDebit` não for confirmado, a saga reenvia e,
 quando as tentativas acabam, para em `NEEDS_ATTENTION`. Não existe compensação da
-compensação (slide 22).
+compensação (slide 23).
 
 ## Rode
 
@@ -104,7 +104,7 @@ watch -n1 curl -s localhost:8083/spi        # CLOSED → OPEN → HALF_OPEN → 
 ```
 
 Enquanto o circuito está aberto, abra Consumers → `pix-service` no Kafka UI: o **lag**
-cresce. É o consumidor ditando o ritmo (slide 39). Nada foi para a DLT.
+cresce. É o consumidor ditando o ritmo (slide 40). Nada foi para a DLT.
 
 ## Quebre
 

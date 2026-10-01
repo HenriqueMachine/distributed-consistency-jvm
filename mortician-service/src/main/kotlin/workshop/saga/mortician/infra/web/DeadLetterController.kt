@@ -47,7 +47,7 @@ data class DeadLetterResponse(
     }
 }
 
-/** Porta HTTP do Mortician: listar, investigar e republicar mensagens mortas (slide 38). */
+/** Porta HTTP do Mortician: listar, investigar e republicar mensagens mortas (slide 39). */
 @RestController
 @RequestMapping("/dead-letters")
 class DeadLetterController(private val deadLetters: DeadLetterService) {

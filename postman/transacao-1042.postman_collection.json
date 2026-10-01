@@ -247,7 +247,7 @@
             "method": "GET",
             "header": [],
             "url": "{{transferUrl}}/transfers/{{transferId}}/transitions",
-            "description": "Por que a transferência terminou assim? Motivo, evento, cid e versão do código (slide 23). Passo 2+."
+            "description": "Por que a transferência terminou assim? Motivo, evento, cid e versão do código (slide 24). Passo 2+."
           }
         },
         {

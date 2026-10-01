@@ -1,6 +1,6 @@
 # Passo 1 · Esqueleto
 
-> Slides 18–19 · `git checkout passo-1`
+> Slides 19–20 · `git checkout passo-1`
 
 ## A ideia
 
