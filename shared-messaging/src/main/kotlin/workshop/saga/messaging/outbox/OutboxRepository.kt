@@ -6,18 +6,19 @@ import workshop.saga.contracts.Envelope
 import workshop.saga.contracts.MessageCodec
 import workshop.saga.contracts.Simulation
 import workshop.saga.contracts.Topics
+import java.time.Duration
 import java.util.UUID
 
 /** Tabela `outbox` do serviço. Cada serviço tem a sua, no próprio banco. */
 @Repository
 class OutboxRepository(private val jdbc: JdbcClient) {
 
-    /** Grava a mensagem para o relay publicar. */
-    fun save(envelope: Envelope) {
+    /** Grava a mensagem para o relay publicar a partir de agora + [delay]. */
+    fun save(envelope: Envelope, delay: Duration = Duration.ZERO) {
         jdbc.sql(
             """
-            insert into outbox (id, topic, message_key, message_type, payload, simulate)
-            values (:id, :topic, :key, :type, :payload, :simulate)
+            insert into outbox (id, topic, message_key, message_type, payload, simulate, available_at)
+            values (:id, :topic, :key, :type, :payload, :simulate, now() + make_interval(secs => :delaySeconds))
             """,
         )
             .param("id", envelope.messageId)
@@ -26,11 +27,12 @@ class OutboxRepository(private val jdbc: JdbcClient) {
             .param("type", envelope.type)
             .param("payload", MessageCodec.encode(envelope.message))
             .param("simulate", envelope.simulation?.name)
+            .param("delaySeconds", delay.toMillis() / 1000.0)
             .update()
     }
 
     /**
-     * Linhas ainda não publicadas, na ordem em que foram gravadas. `skip locked`: se houver
+     * Linhas prontas e ainda não publicadas, na ordem em que foram gravadas. `skip locked`: se houver
      * mais de uma instância do serviço, cada relay pega linhas diferentes.
      */
     fun lockPending(limit: Int): List<OutboxRecord> =
@@ -38,7 +40,7 @@ class OutboxRepository(private val jdbc: JdbcClient) {
             """
             select id, topic, message_key, message_type, payload, simulate
             from outbox
-            where published_at is null
+            where published_at is null and available_at <= now()
             order by created_at
             limit :limit
             for update skip locked

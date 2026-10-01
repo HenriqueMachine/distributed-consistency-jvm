@@ -7,7 +7,7 @@ import workshop.saga.account.domain.DebitId
 import workshop.saga.contracts.Money
 import java.sql.ResultSet
 
-/** Tabela `debits`: uma linha por débito. */
+/** Tabela `debits`: um débito por transferência (`uq_debit_transfer`). */
 @Repository
 class DebitRepository(private val jdbc: JdbcClient) {
 
@@ -24,8 +24,8 @@ class DebitRepository(private val jdbc: JdbcClient) {
         return Debit(DebitId(id), transferId, from, amount)
     }
 
-    /** O primeiro débito da transferência, se houver. */
-    fun findFirstByTransferId(transferId: Long): Debit? = findAllByTransferId(transferId).firstOrNull()
+    /** O débito da transferência, se houver. */
+    fun findByTransferId(transferId: Long): Debit? = findAllByTransferId(transferId).firstOrNull()
 
     /** Todos os débitos da transferência (extrato). */
     fun findAllByTransferId(transferId: Long): List<Debit> =

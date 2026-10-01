@@ -11,6 +11,9 @@ enum class Simulation {
 
     /** relay da outbox: publica a mesma linha duas vezes, como se caísse antes de marcar (passo 3). */
     DUPLICATE,
+
+    /** account-service: debita na hora, mas a resposta só sai 15 s depois (passo 4). */
+    DEBIT_SLOW,
     ;
 
     companion object {

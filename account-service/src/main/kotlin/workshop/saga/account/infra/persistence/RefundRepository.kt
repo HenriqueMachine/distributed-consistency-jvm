@@ -7,7 +7,7 @@ import workshop.saga.account.domain.DebitId
 import workshop.saga.account.domain.Refund
 import workshop.saga.contracts.Money
 
-/** Tabela `refunds`: estornos, sempre ligados a um débito. */
+/** Tabela `refunds`: no máximo um estorno por débito (`uq_refund_debit`). */
 @Repository
 class RefundRepository(private val jdbc: JdbcClient) {
 
@@ -19,6 +19,13 @@ class RefundRepository(private val jdbc: JdbcClient) {
             .param("amount", debit.amount.cents)
             .update()
     }
+
+    /** Se o débito [debitId] já foi estornado. */
+    fun existsFor(debitId: DebitId): Boolean =
+        jdbc.sql("select exists (select 1 from refunds where debit_id = :debitId)")
+            .param("debitId", debitId.value)
+            .query(Boolean::class.java)
+            .single()
 
     /** Todos os estornos da transferência (extrato). */
     fun findAllByTransferId(transferId: Long): List<Refund> =

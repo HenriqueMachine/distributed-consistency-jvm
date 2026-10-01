@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import workshop.saga.contracts.Envelope
 import workshop.saga.messaging.outbox.OutboxRepository
+import java.time.Duration
 
 /**
  * Publica mensagens da saga pela outbox (slide 25).
@@ -18,9 +19,12 @@ import workshop.saga.messaging.outbox.OutboxRepository
 @Component
 class MessagePublisher(private val outbox: OutboxRepository) {
 
-    /** Grava [envelope] na outbox, na transação de quem chama. */
+    /**
+     * Grava [envelope] na outbox, na transação de quem chama. [delay] segura a mensagem na
+     * outbox antes de o relay publicá-la (usado pelo `DEBIT_SLOW`).
+     */
     @Transactional(propagation = Propagation.MANDATORY)
-    fun publish(envelope: Envelope) {
-        outbox.save(envelope)
+    fun publish(envelope: Envelope, delay: Duration = Duration.ZERO) {
+        outbox.save(envelope, delay)
     }
 }

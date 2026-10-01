@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository
 import workshop.saga.contracts.Money
 import workshop.saga.pix.domain.PixTransfer
 
-/** Tabela `pix_transfers`: um registro por Pix liquidado (o crédito no destino). */
+/** Tabela `pix_transfers`: um Pix por transferência (`uq_pix_transfer`), o crédito no destino. */
 @Repository
 class PixTransferRepository(private val jdbc: JdbcClient) {
 
@@ -23,6 +23,9 @@ class PixTransferRepository(private val jdbc: JdbcClient) {
             .param("endToEndId", pix.endToEndId)
             .update()
     }
+
+    /** O Pix da transferência, se houver. */
+    fun findByTransferId(transferId: Long): PixTransfer? = findAllByTransferId(transferId).firstOrNull()
 
     /** Todos os Pix da transferência. */
     fun findAllByTransferId(transferId: Long): List<PixTransfer> =

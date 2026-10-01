@@ -50,3 +50,10 @@ Content-Type: application/json
 X-Simulate: DUPLICATE
 
 {"from": "ana", "to": "henrique", "amount": 150.00}
+
+### Passo 4 · Débito lento: debita na hora, responde 15 s depois
+POST http://localhost:8081/transfers
+Content-Type: application/json
+X-Simulate: DEBIT_SLOW
+
+{"from": "ana", "to": "henrique", "amount": 150.00}

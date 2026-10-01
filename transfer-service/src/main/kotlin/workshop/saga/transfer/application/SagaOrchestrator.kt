@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import workshop.saga.contracts.Envelope
 import workshop.saga.contracts.MessageCodec
 import workshop.saga.messaging.MessagePublisher
+import workshop.saga.messaging.inbox.Inbox
 import workshop.saga.transfer.domain.Transfer
 import workshop.saga.transfer.domain.TransferId
 import workshop.saga.transfer.domain.saga.Decision
@@ -32,6 +33,7 @@ class SagaOrchestrator(
     private val transitions: SagaTransitionRepository,
     private val stateMachine: SagaStateMachine,
     private val publisher: MessagePublisher,
+    private val inbox: Inbox,
     private val appVersion: AppVersion,
     private val clock: Clock,
 ) {
@@ -43,10 +45,10 @@ class SagaOrchestrator(
         return execute(transfer, saga, SagaEvent.TransferPlaced, eventId = null)
     }
 
-    /** Aplica a resposta de um participante, que chegou no envelope [reply]. */
+    /** Aplica a resposta de um participante. Uma resposta entregue de novo é ignorada. */
     @Transactional
     fun onReply(reply: Envelope, event: SagaEvent) {
-        handle(TransferId(reply.transferId), event, reply.messageId)
+        if (inbox.firstDelivery(reply)) handle(TransferId(reply.transferId), event, reply.messageId)
     }
 
     /** Aplica o vencimento do prazo do passo atual. */
