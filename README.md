@@ -68,6 +68,21 @@ docker compose up -d && ./gradlew bootRun --parallel
 O [`requests.http`](requests.http) tem todas as requisições prontas para o IntelliJ ou para a
 extensão REST Client do VS Code.
 
+### Collection do Postman
+
+Importe [`postman/transacao-1042.postman_collection.json`](postman/transacao-1042.postman_collection.json)
+no Postman (*Import* → arraste o arquivo). Insomnia e Bruno também importam esse formato.
+
+- As pastas seguem os passos da apresentação, e cada requisição explica o que esperar em
+  cada passo.
+- Todo `POST /transfers` guarda o id criado na variável `{{transferId}}`. As requisições
+  da pasta **Consultas** (estado, transições, extrato, Pix) usam essa variável, então não
+  é preciso copiar o id.
+- A listagem de mensagens mortas guarda o id da mais recente em `{{deadLetterId}}`, que o
+  **Resgatar** usa.
+- Para transferir a partir de alguém da sala: cadastre a pessoa em **0. Participantes** e
+  troque a variável `{{from}}` da collection (*Variables*) pela chave dela.
+
 ### No IntelliJ IDEA
 
 O repositório traz configurações de execução prontas na pasta `.run/`. Elas aparecem

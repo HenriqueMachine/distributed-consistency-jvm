@@ -1,0 +1,570 @@
+{
+  "info": {
+    "name": "Transação #1042",
+    "description": "Requisições da palestra \"Transação #1042 · Falha não é exceção: é parte do fluxo\".\n\nCada POST /transfers guarda o id criado em {{transferId}}; as consultas usam essa variável. Troque {{from}} para transferir a partir de um participante cadastrado.\n\nAntes: `docker compose up -d` e `./gradlew bootRun --parallel` (ou as configurações do IntelliJ).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "transferUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "accountUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "pixUrl",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "morticianUrl",
+      "value": "http://localhost:8084"
+    },
+    {
+      "key": "from",
+      "value": "ana"
+    },
+    {
+      "key": "transferId",
+      "value": "1042"
+    },
+    {
+      "key": "deadLetterId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Participantes",
+      "item": [
+        {
+          "name": "Listar participantes e saldos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{accountUrl}}/participants",
+            "description": "Bom para mostrar na tela antes e depois das transferências."
+          }
+        },
+        {
+          "name": "Cadastrar participante da sala",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{accountUrl}}/participants",
+            "description": "Depois, troque a variável {{from}} para \"maria\" e transfira a partir dela.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Maria Souza\",\n  \"pixKey\": \"maria\",\n  \"balance\": 1000.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Passo 1–2 · Saga orquestrada",
+      "item": [
+        {
+          "name": "Caminho feliz",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{transferUrl}}/transfers",
+            "description": "CREATED → DEBIT_PENDING → PIX_PENDING → COMPLETED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"{{from}}\",\n  \"to\": \"henrique\",\n  \"amount\": 150.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da transferência criada: as próximas requisições usam {{transferId}}.",
+                  "const body = pm.response.json();",
+                  "const id = body.id ?? body.transferId;",
+                  "if (id) { pm.collectionVariables.set('transferId', id); console.log('transferId =', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Conta destino encerrada (compensação)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{transferUrl}}/transfers",
+            "description": "PIX_PENDING → REFUNDING → CANCELLED, com 1 estorno.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"{{from}}\",\n  \"to\": \"conta-encerrada\",\n  \"amount\": 150.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da transferência criada: as próximas requisições usam {{transferId}}.",
+                  "const body = pm.response.json();",
+                  "const id = body.id ?? body.transferId;",
+                  "if (id) { pm.collectionVariables.set('transferId', id); console.log('transferId =', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Saldo insuficiente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{transferUrl}}/transfers",
+            "description": "DEBIT_PENDING → CANCELLED, sem débito.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"{{from}}\",\n  \"to\": \"henrique\",\n  \"amount\": 5000.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da transferência criada: as próximas requisições usam {{transferId}}.",
+                  "const body = pm.response.json();",
+                  "const id = body.id ?? body.transferId;",
+                  "if (id) { pm.collectionVariables.set('transferId', id); console.log('transferId =', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Quebra: escrita dupla (CRASH_AFTER_SEND)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Simulate",
+                "value": "CRASH_AFTER_SEND"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{transferUrl}}/transfers",
+            "description": "Passo 2: devolve 500 com o transferId; o débito acontece, a transferência não existe. Passo 3+: nada acontece (outbox).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"{{from}}\",\n  \"to\": \"henrique\",\n  \"amount\": 150.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da transferência criada: as próximas requisições usam {{transferId}}.",
+                  "const body = pm.response.json();",
+                  "const id = body.id ?? body.transferId;",
+                  "if (id) { pm.collectionVariables.set('transferId', id); console.log('transferId =', id); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Consultas (usam {{transferId}})",
+      "item": [
+        {
+          "name": "Consultar a transferência",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{transferUrl}}/transfers/{{transferId}}",
+            "description": "Estado atual da saga."
+          }
+        },
+        {
+          "name": "Transições da saga (saga_transitions)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{transferUrl}}/transfers/{{transferId}}/transitions",
+            "description": "Por que a transferência terminou assim? Motivo, evento, cid e versão do código (slide 23). Passo 2+."
+          }
+        },
+        {
+          "name": "Extrato: débitos e estornos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{accountUrl}}/debits?transferId={{transferId}}",
+            "description": "Passo 2+."
+          }
+        },
+        {
+          "name": "Créditos do Pix",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{pixUrl}}/pix?transferId={{transferId}}",
+            "description": "Passo 2+."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Passo 3–4 · Outbox e idempotência",
+      "item": [
+        {
+          "name": "Duplicata (DUPLICATE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Simulate",
+                "value": "DUPLICATE"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{transferUrl}}/transfers",
+            "description": "Passo 3: 2 débitos. Passo 4+: \"já processado — ignorado\", 1 débito só.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"{{from}}\",\n  \"to\": \"henrique\",\n  \"amount\": 150.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da transferência criada: as próximas requisições usam {{transferId}}.",
+                  "const body = pm.response.json();",
+                  "const id = body.id ?? body.transferId;",
+                  "if (id) { pm.collectionVariables.set('transferId', id); console.log('transferId =', id); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Passo 4–5 · Timeout",
+      "item": [
+        {
+          "name": "Débito lento (DEBIT_SLOW)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Simulate",
+                "value": "DEBIT_SLOW"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{transferUrl}}/transfers",
+            "description": "Passo 4: o timeout estorna um débito que deu certo. Passo 5+: DEBIT_UNKNOWN, reenvio com a mesma chave, COMPLETED sem estorno.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"{{from}}\",\n  \"to\": \"henrique\",\n  \"amount\": 150.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da transferência criada: as próximas requisições usam {{transferId}}.",
+                  "const body = pm.response.json();",
+                  "const id = body.id ?? body.transferId;",
+                  "if (id) { pm.collectionVariables.set('transferId', id); console.log('transferId =', id); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Passo 5–6 · Retry, DLT e circuit breaker",
+      "item": [
+        {
+          "name": "Pix quebrado (PIX_CRASH)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Simulate",
+                "value": "PIX_CRASH"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{transferUrl}}/transfers",
+            "description": "Passo 5: a mensagem some e a saga fica em PIX_PENDING. Passo 6+: retry 1/2/4 s → pix.commands.DLT → NEEDS_ATTENTION (~40 s).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"{{from}}\",\n  \"to\": \"henrique\",\n  \"amount\": 150.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da transferência criada: as próximas requisições usam {{transferId}}.",
+                  "const body = pm.response.json();",
+                  "const id = body.id ?? body.transferId;",
+                  "if (id) { pm.collectionVariables.set('transferId', id); console.log('transferId =', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Derrubar o SPI por 15 s",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{pixUrl}}/spi/outage?seconds=15",
+            "description": "Passo 6+. Depois crie uma transferência: o circuito abre e o consumidor pausa."
+          }
+        },
+        {
+          "name": "Estado do SPI e do circuito",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{pixUrl}}/spi",
+            "description": "CLOSED → OPEN → HALF_OPEN → CLOSED."
+          }
+        },
+        {
+          "name": "SPI de volta na hora",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{pixUrl}}/spi/outage",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Passo 7 · Mortician",
+      "item": [
+        {
+          "name": "Mensagens mortas da transferência",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{morticianUrl}}/dead-letters?transferId={{transferId}}",
+            "description": "Guarda o id da mais recente em {{deadLetterId}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da mensagem morta mais recente: o resgate usa {{deadLetterId}}.",
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) { pm.collectionVariables.set('deadLetterId', list[0].id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mensagens mortas ainda não resgatadas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{morticianUrl}}/dead-letters?status=NEW",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da mensagem morta mais recente: o resgate usa {{deadLetterId}}.",
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) { pm.collectionVariables.set('deadLetterId', list[0].id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Investigar uma mensagem morta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{morticianUrl}}/dead-letters/{{deadLetterId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Resgatar (republicar pela outbox)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{morticianUrl}}/dead-letters/{{deadLetterId}}/republish",
+            "description": "REPUBLISHED → PixSettled → COMPLETED. Repetir devolve 409.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"bug do PIX_CRASH corrigido no deploy\",\n  \"requestedBy\": \"henrique\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Passo 8 · Observabilidade",
+      "item": [
+        {
+          "name": "Sagas paradas (NEEDS_ATTENTION)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{transferUrl}}/actuator/metrics/saga.state?tag=state:NEEDS_ATTENTION",
+            "description": ""
+          }
+        },
+        {
+          "name": "Transições concluídas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{transferUrl}}/actuator/metrics/saga.transitions?tag=to:COMPLETED",
+            "description": ""
+          }
+        },
+        {
+          "name": "Mensagens na DLT",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{pixUrl}}/actuator/metrics/saga.dlt.messages",
+            "description": ""
+          }
+        },
+        {
+          "name": "Circuit breakers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{pixUrl}}/actuator/circuitbreakers",
+            "description": ""
+          }
+        },
+        {
+          "name": "Saúde dos serviços (transfer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{transferUrl}}/actuator/health",
+            "description": ""
+          }
+        }
+      ]
+    }
+  ]
+}
