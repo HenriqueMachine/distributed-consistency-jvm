@@ -8,7 +8,7 @@ import workshop.saga.transfer.domain.saga.SagaTransition
 import java.util.UUID
 
 /**
- * Tabela `saga_transitions` (slide 24): só de inserção. Não há `update` nem `delete` aqui, e
+ * Tabela `saga_transitions` (slide 26): só de inserção. Não há `update` nem `delete` aqui, e
  * o próprio banco os proíbe (`revoke update, delete`): fatos não se apagam.
  */
 @Repository

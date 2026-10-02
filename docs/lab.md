@@ -9,7 +9,7 @@ docker compose down && rm -rf logs && docker compose up -d
 ./gradlew bootRun --parallel
 ```
 
-Dispare os cenários (ou use o [`requests.http`](../requests.http)) e anote o `id` que cada
+Dispare os cenários (ou use a [collection do Postman](../postman/transacao-1042.postman_collection.json)) e anote o `id` que cada
 `POST` devolve:
 
 ```bash

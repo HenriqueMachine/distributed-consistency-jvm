@@ -7,7 +7,7 @@ import workshop.saga.account.domain.Refund
 import workshop.saga.account.infra.persistence.DebitRepository
 import workshop.saga.account.infra.persistence.RefundRepository
 
-/** Extrato de uma transferência: débitos e estornos, como a cliente veria (slide 23). */
+/** Extrato de uma transferência: débitos e estornos, como a cliente veria (slide 25). */
 data class Statement(val transferId: Long, val debits: List<Debit>, val refunds: List<Refund>)
 
 /** Monta o extrato de uma transferência a partir dos débitos e estornos gravados. */

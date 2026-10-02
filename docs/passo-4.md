@@ -14,7 +14,7 @@ A outbox nos colocou em at-least-once dos dois lados. Exactly-once *de efeito* �
 at-least-once mais **idempotência**: processar duas vezes tem o mesmo efeito que processar
 uma.
 
-Lembre do Pix (slide 30): a chave de idempotência nasce antes da 1ª tentativa e vai em todo
+Lembre do Pix (slide 32): a chave de idempotência nasce antes da 1ª tentativa e vai em todo
 retry. Aqui, essa chave é o `transferId`.
 
 ## Duas camadas
@@ -30,7 +30,7 @@ anterior** em vez de debitar de novo. É isso que o passo 5 vai usar.
 
 E por que não usar partição + offset? Esse par só detecta a reentrega feita pelo broker
 (rebalance, restart). O relay republicando e o orquestrador reenviando geram offsets novos.
-O eventId e a chave de negócio pegam os três casos (slide 32).
+O eventId e a chave de negócio pegam os três casos (slide 34).
 
 ## O que mudou no código
 
@@ -102,7 +102,7 @@ SagaEvent.TimedOut -> saga.moveTo(REFUNDING, reason = "… considerado falha, es
 ```
 
 E se, em vez de estornar, a gente debitasse de novo? Pior ainda: seria o débito em dobro do
-slide 30.
+slide 32.
 
 ## Por que o próximo passo existe
 

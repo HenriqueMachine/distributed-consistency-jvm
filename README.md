@@ -65,9 +65,6 @@ docker compose up -d && ./gradlew bootRun --parallel
 | http://localhost:8083 | pix-service (`GET /spi`, `POST /spi/outage`) |
 | http://localhost:8084 | mortician-service (`GET /dead-letters`, `POST /dead-letters/{id}/republish`), a partir do passo 7 |
 
-O [`requests.http`](requests.http) tem todas as requisições prontas para o IntelliJ ou para a
-extensão REST Client do VS Code.
-
 ### Collection do Postman
 
 Importe [`postman/transacao-1042.postman_collection.json`](postman/transacao-1042.postman_collection.json)

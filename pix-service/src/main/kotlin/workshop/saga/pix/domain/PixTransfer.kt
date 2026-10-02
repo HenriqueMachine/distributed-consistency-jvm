@@ -16,7 +16,7 @@ sealed interface PixDecision {
 
 /**
  * Regra do "outro banco": aceita qualquer chave, menos as de contas encerradas. Na
- * apresentação, `conta-encerrada` é o jeito de forçar a compensação (slide 21).
+ * apresentação, `conta-encerrada` é o jeito de forçar a compensação (slide 23).
  */
 object PixPolicy {
     private val CLOSED_KEYS = setOf("conta-encerrada")

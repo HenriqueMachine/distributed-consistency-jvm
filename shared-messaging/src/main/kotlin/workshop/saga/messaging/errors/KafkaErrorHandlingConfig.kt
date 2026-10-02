@@ -16,19 +16,19 @@ import workshop.saga.contracts.InvalidPayloadException
 import workshop.saga.contracts.Topics
 
 /**
- * O que fazer quando um listener lança exceção (slide 36).
+ * O que fazer quando um listener lança exceção (slide 38).
  *
  * - **Erro transitório** (banco fora, rede, lock): tenta de novo com backoff exponencial,
  *   1 s, 2 s, 4 s. Esgotou, a mensagem vai para a DLT.
  * - **Erro permanente** ([InvalidPayloadException]): retry não ajuda, vai direto para a DLT.
  * - **Dependência fora do ar** ([DependencyUnavailableException]): não é culpa da mensagem;
- *   tenta de novo a cada 2 s, sem limite, e nunca vai para a DLT (slide 37).
+ *   tenta de novo a cada 2 s, sem limite, e nunca vai para a DLT (slide 39).
  *
  * Nos dois primeiros casos a mensagem sai do caminho e a partição volta a andar: as
  * mensagens das outras transferências não ficam presas atrás dela. O Spring Boot liga este
  * handler a todos os `@KafkaListener` do serviço.
  *
- * Cuidado com o retry bloqueante longo (slide 40): 1 + 2 + 4 = 7 s parado nesta mensagem,
+ * Cuidado com o retry bloqueante longo (slide 42): 1 + 2 + 4 = 7 s parado nesta mensagem,
  * bem abaixo do `max.poll.interval.ms` (5 min). E o prazo da saga para este passo precisa
  * ser maior que isso.
  */
@@ -85,7 +85,7 @@ class KafkaErrorHandlingConfig {
     private fun Throwable.rootCause(): Throwable = generateSequence(this) { it.cause }.last()
 
     private companion object {
-        /** Retries depois da primeira tentativa: 1 s, 2 s, 4 s. O log conta "tentativa=3" como no slide 42. */
+        /** Retries depois da primeira tentativa: 1 s, 2 s, 4 s. O log conta "tentativa=3" como no slide 44. */
         const val MAX_RETRIES = 3
 
         /** Dependência fora do ar: tenta a cada 2 s até ela voltar. */

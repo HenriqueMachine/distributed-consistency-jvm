@@ -1,7 +1,7 @@
 package workshop.saga.transfer.domain.saga
 
 /**
- * Em que ponto da jornada a transferência está (slides 21 e 35).
+ * Em que ponto da jornada a transferência está (slides 23 e 37).
  *
  * Caminho feliz: CREATED → DEBIT_PENDING → PIX_PENDING → COMPLETED.
  * Compensação:   PIX_PENDING → REFUNDING → CANCELLED (conta destino encerrada).

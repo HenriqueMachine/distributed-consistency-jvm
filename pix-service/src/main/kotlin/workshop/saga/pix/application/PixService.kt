@@ -45,7 +45,7 @@ class PixService(
         val amount = Money(command.amountInCents)
         val reply = when (val decision = PixPolicy.evaluate(command.to)) {
             PixDecision.Send -> {
-                // A chamada ao SPI é um nó novo na árvore de correlação: ….PIX-c3.SPI-3f (slide 43).
+                // A chamada ao SPI é um nó novo na árvore de correlação: ….PIX-c3.SPI-3f (slide 45).
                 val endToEndId = SagaContext.withCid(request.cid?.child("SPI")) { spi.settle(command.transferId) }
                 val pix = PixTransfer(command.transferId, command.to, amount, endToEndId)
                 pixTransfers.insert(pix)

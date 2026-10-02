@@ -2,7 +2,7 @@ package workshop.saga.contracts
 
 /**
  * Toda mensagem da saga. `transferId` é também a chave Kafka: mensagens da mesma
- * transferência caem na mesma partição e chegam em ordem (slide 8).
+ * transferência caem na mesma partição e chegam em ordem (slide 9).
  *
  * As hierarquias são `sealed`: um `when` sobre elas é exaustivo, então o compilador aponta
  * qualquer mensagem nova que alguém esqueceu de tratar.
@@ -19,7 +19,7 @@ sealed interface AccountCommand : Message
 /** Debite [amountInCents] da conta [from]. */
 data class DebitAccount(override val transferId: Long, val from: String, val amountInCents: Long) : AccountCommand
 
-/** Compensação: devolva o débito desta transferência (slide 23). */
+/** Compensação: devolva o débito desta transferência (slide 25). */
 data class RefundDebit(override val transferId: Long) : AccountCommand
 
 // ── account.replies: account-service → orquestrador ─────────────────────────────────────

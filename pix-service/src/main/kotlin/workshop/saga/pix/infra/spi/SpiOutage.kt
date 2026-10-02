@@ -10,9 +10,7 @@ import java.time.Instant
  * SPI falha, de qualquer transferência: é o cenário em que o circuit breaker faz sentido.
  */
 @Component
-class SpiOutage {
-    private val clock = Clock.systemUTC()
-
+class SpiOutage(private val clock: Clock) {
     @Volatile
     private var downUntil: Instant? = null
 
