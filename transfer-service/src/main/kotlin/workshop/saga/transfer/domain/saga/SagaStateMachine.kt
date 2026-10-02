@@ -20,7 +20,7 @@ import java.time.Instant
  * Quanto esperar pela resposta de cada passo, e quantas vezes perguntar antes de desistir.
  *
  * O prazo do Pix precisa caber o retry do consumidor (1 s + 2 s + 4 s) com folga: todo
- * timeout da saga precisa caber no lag (slide 44).
+ * timeout da saga precisa caber no lag (slide 45).
  */
 data class SagaTimeouts(
     val debit: Duration,
@@ -34,7 +34,7 @@ data class SagaTimeouts(
 }
 
 /**
- * O coração do orquestrador (slides 26, 27 e 39): dado o estado atual e um evento, decide o
+ * O coração do orquestrador (slides 27, 28 e 40): dado o estado atual e um evento, decide o
  * próximo estado e quais comandos enviar. `(estado, resposta) → (novo estado, comandos)`.
  *
  * É uma função pura: não lê banco, não publica mensagem, não consulta o relógio (o `now`
@@ -46,7 +46,7 @@ data class SagaTimeouts(
  * - no timeout, reenvia o mesmo comando (mesma chave: transferId), o participante é
  *   idempotente; no débito, a saga entra em DEBIT_UNKNOWN para deixar explícito o "não sei";
  * - tentativas esgotadas levam a NEEDS_ATTENTION, inclusive na compensação
- *   (não existe compensação da compensação, slide 28);
+ *   (não existe compensação da compensação, slide 29);
  * - só se compensa diante de um "não" explícito;
  * - em NEEDS_ATTENTION, só uma resposta de sucesso (ex.: resgate pelo Mortician) tira a saga de lá.
  */
@@ -100,7 +100,7 @@ class SagaStateMachine(private val timeouts: SagaTimeouts) {
             COMPLETED, CANCELLED -> saga.ignore(event)
         }
 
-    /** Sem resposta não quer dizer "não": pergunta de novo, com a mesma chave (slide 39). */
+    /** Sem resposta não quer dizer "não": pergunta de novo, com a mesma chave (slide 40). */
     private fun Saga.retryOrGiveUp(
         now: Instant,
         timeout: Duration,

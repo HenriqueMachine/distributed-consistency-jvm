@@ -6,7 +6,7 @@ import kotlin.reflect.KClass
 
 /**
  * Mensagem que nunca vai ser processada, não importa quantas vezes a gente tente:
- * JSON inválido, tipo desconhecido, campo faltando. Retry não ajuda (slide 40).
+ * JSON inválido, tipo desconhecido, campo faltando. Retry não ajuda (slide 41).
  */
 class InvalidPayloadException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
 

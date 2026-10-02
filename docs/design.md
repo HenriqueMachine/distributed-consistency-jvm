@@ -109,7 +109,7 @@ infra/persistence    repositórios JdbcClient
 ```
 
 O coração é `SagaStateMachine.decide(transfer, saga, event, now): Decision`, uma função
-pura que devolve o novo estado, os comandos a emitir e o motivo da transição (slide 27).
+pura que devolve o novo estado, os comandos a emitir e o motivo da transição (slide 28).
 
 ### Máquina de estados (versão final)
 
@@ -125,7 +125,7 @@ NEEDS_ATTENTION --DebitRefunded--> CANCELLED
 
 Respostas que chegam fora de hora (estado já avançou) são ignoradas e logadas.
 
-### Log de transições (slide 29)
+### Log de transições (slide 30)
 
 A tabela `sagas` guarda o estado operacional (estado atual, prazo, tentativas). Ao lado
 dela, `saga_transitions` é **só de inserção**, com `revoke update, delete`. Cada
@@ -162,7 +162,7 @@ As simulações ficam fora das regras de negócio: um `FailureSimulator` por ser
 A cada passo, o E2E do passo traz um teste que **documenta a quebra**, e o passo seguinte
 inverte a asserção.
 
-## Circuit breaker (passo 6, slide 41)
+## Circuit breaker (passo 6, slide 42)
 
 - O `pix-service` chama o `SpiGateway` através do circuit breaker `spi` (Resilience4j,
   configurado em `resilience4j.circuitbreaker.instances.spi.*` no `application.yml`).
@@ -172,7 +172,7 @@ inverte a asserção.
   UI. Em HALF_OPEN, ele é retomado para testar; se fechar, a fila escoa.
 - O prazo do passo Pix da saga cabe a indisponibilidade padrão da demonstração.
 
-## Mortician (passo 7, slide 42)
+## Mortician (passo 7, slide 43)
 
 - `@KafkaListener(topicPattern = ".*\\.DLT")`, grupo próprio. Grava em `dead_letters`:
   tópico original, chave, payload, headers, exceção, `transferId`, `cid` e status
@@ -184,7 +184,7 @@ inverte a asserção.
   cobre a repetição), e **sem** o header `simulate`: é a "correção do bug". Cada resgate
   registra quem, quando e por quê, e só acontece uma vez por mensagem morta.
 
-## Observabilidade (passo 8, slides 46–47)
+## Observabilidade (passo 8, slides 47–48)
 
 - Correlation id em árvore no header `x-cid`. A raiz é `TRF-1042`. O orquestrador cria
   um filho por comando (`TRF-1042.DEB-a1`, `TRF-1042.DEB-b7` no reenvio,

@@ -4,6 +4,6 @@ plugins {
 
 dependencies {
     implementation(project(":shared-messaging"))
-    // Circuit breaker do SPI (slide 41), configurado em resilience4j.circuitbreaker.instances.spi.*
+    // Circuit breaker do SPI (slide 42), configurado em resilience4j.circuitbreaker.instances.spi.*
     implementation("io.github.resilience4j:resilience4j-spring-boot4:2.4.0")
 }

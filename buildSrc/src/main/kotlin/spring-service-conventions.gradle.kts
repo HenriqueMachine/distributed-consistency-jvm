@@ -18,7 +18,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
 }
 
-// build-info.properties com o git sha: vira o app_version de cada transição da saga (slide 29).
+// build-info.properties com o git sha: vira o app_version de cada transição da saga (slide 30).
 // Sem git (ex.: build dentro do Docker), a versão é "dev".
 val gitSha = providers.of(GitShaValueSource::class) {}
 

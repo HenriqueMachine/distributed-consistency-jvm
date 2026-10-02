@@ -8,7 +8,7 @@ import workshop.saga.messaging.outbox.OutboxRepository
 import java.time.Duration
 
 /**
- * Publica mensagens da saga pela outbox (slide 31).
+ * Publica mensagens da saga pela outbox (slide 32).
  *
  * "Publicar" agora é gravar uma linha na tabela `outbox`, **na mesma transação** do dado de
  * negócio: ou os dois são gravados, ou nenhum. Quem leva a linha até o Kafka é o

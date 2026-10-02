@@ -91,6 +91,6 @@ offsets diferentes. Essa é a pista para o próximo passo.
 
 ## Por que o próximo passo existe
 
-At-least-once é o padrão do Spring Kafka e da outbox (slide 33): vamos receber duplicatas,
+At-least-once é o padrão do Spring Kafka e da outbox (slide 34): vamos receber duplicatas,
 sempre. No [passo 4](passo-4.md), todo consumidor passa a ser **idempotente**: processar
 duas vezes tem o mesmo efeito que processar uma.

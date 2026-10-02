@@ -13,7 +13,7 @@ spring:
       group-id: account-service
       auto-offset-reset: earliest
     listener:
-      # Commit do offset depois de cada mensagem processada: at-least-once (slide 33).
+      # Commit do offset depois de cada mensagem processada: at-least-once (slide 34).
       ack-mode: record
 
 server:
@@ -39,5 +39,5 @@ logging:
 
 simulation:
   debit-slow:
-    # Quanto a resposta fica retida com X-Simulate: DEBIT_SLOW (slide 39: chega aos 15 s).
+    # Quanto a resposta fica retida com X-Simulate: DEBIT_SLOW (slide 40: chega aos 15 s).
     delay: 15s

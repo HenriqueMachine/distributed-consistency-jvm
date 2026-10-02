@@ -74,7 +74,7 @@ class TransferController(private val transferService: TransferService) {
             ?.let { ResponseEntity.ok(TransferResponse.from(it)) }
             ?: ResponseEntity.notFound().build()
 
-    /** O histórico da saga (slide 29): cada transição com motivo, evento, cid e versão do código. */
+    /** O histórico da saga (slide 30): cada transição com motivo, evento, cid e versão do código. */
     @GetMapping("/{id}/transitions")
     fun transitions(@PathVariable id: Long): List<TransitionResponse> =
         transferService.transitionsOf(TransferId(id)).map(TransitionResponse::from)

@@ -16,7 +16,7 @@ class SpiUnavailableException(message: String, cause: Throwable? = null) : Depen
  * O SPI (Sistema de Pagamentos Instantâneos) simulado: o sistema de terceiros que liquida o
  * Pix. Devolve o `endToEndId`, a identidade da operação no ecossistema Pix.
  *
- * Toda chamada passa pelo circuit breaker `spi` (slide 41): passou de 50% de falhas, o
+ * Toda chamada passa pelo circuit breaker `spi` (slide 42): passou de 50% de falhas, o
  * circuito abre e as chamadas nem saem; de tempos em tempos, uma passa para testar.
  */
 @Component
@@ -32,7 +32,7 @@ class SpiGateway(
     /**
      * Liquida o Pix da transferência [transferId] e devolve o `endToEndId`.
      *
-     * Como o PSP do slide 34, o SPI é idempotente pela chave: liquidar de novo a mesma
+     * Como o PSP do slide 35, o SPI é idempotente pela chave: liquidar de novo a mesma
      * transferência devolve o mesmo `endToEndId`, sem um segundo Pix. É isso que torna
      * seguro chamá-lo dentro da transação do banco: se ela voltar, o retry recebe a mesma
      * resposta.

@@ -15,7 +15,7 @@ Quatro peças:
 | **Transições** | todo `de → para` vira log (com motivo, tentativa e evento) e linha em `saga_transitions` |
 | **Métricas** | transições, sagas por estado (UNKNOWN, NEEDS_ATTENTION), mensagens na DLT, circuito do SPI |
 
-### Correlation id em árvore (slide 47)
+### Correlation id em árvore (slide 48)
 
 Quem produz a próxima mensagem acrescenta um segmento ao id. O id conta o caminho:
 
