@@ -109,7 +109,7 @@ infra/persistence    repositórios JdbcClient
 ```
 
 O coração é `SagaStateMachine.decide(transfer, saga, event, now): Decision`, uma função
-pura que devolve o novo estado, os comandos a emitir e o motivo da transição (slide 24).
+pura que devolve o novo estado, os comandos a emitir e o motivo da transição (slide 25).
 
 ### Máquina de estados (versão final)
 
@@ -125,7 +125,7 @@ NEEDS_ATTENTION --DebitRefunded--> CANCELLED
 
 Respostas que chegam fora de hora (estado já avançou) são ignoradas e logadas.
 
-### Log de transições (slide 26)
+### Log de transições (slide 27)
 
 A tabela `sagas` guarda o estado operacional (estado atual, prazo, tentativas). Ao lado
 dela, `saga_transitions` é **só de inserção**, com `revoke update, delete`. Cada
@@ -212,7 +212,7 @@ inverte a asserção.
 ## Fora de escopo
 
 - Coreografia, CDC/Debezium e transações Kafka (citados nos slides, não implementados).
-- `limits-service` e `ledger-service` (slide 7): ilustração do conceito, não fazem parte
+- `limits-service` e `ledger-service` (slide 8): ilustração do conceito, não fazem parte
   da arquitetura.
 - Diretório de chaves sincronizado entre serviços, cadastro em lote e autenticação.
 - Prometheus/Grafana e front-end.

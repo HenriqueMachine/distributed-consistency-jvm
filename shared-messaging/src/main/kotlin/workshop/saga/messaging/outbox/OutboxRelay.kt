@@ -11,7 +11,7 @@ import workshop.saga.contracts.Simulation
 import workshop.saga.messaging.observability.SagaContext
 
 /**
- * O "alguém envia" da caixa de saída (slide 8): lê as linhas pendentes da outbox, publica
+ * O "alguém envia" da caixa de saída (slide 9): lê as linhas pendentes da outbox, publica
  * no Kafka e marca `published_at`.
  *
  * Se o relay cair depois de publicar e antes de marcar, na volta ele publica de novo.

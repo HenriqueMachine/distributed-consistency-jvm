@@ -40,7 +40,7 @@ deveria ser guardada falharia de novo.
 
 A compensação também tem prazo. Se o `RefundDebit` não for confirmado, a saga reenvia e,
 quando as tentativas acabam, para em `NEEDS_ATTENTION`. Não existe compensação da
-compensação (slide 25).
+compensação (slide 26).
 
 ## Rode
 

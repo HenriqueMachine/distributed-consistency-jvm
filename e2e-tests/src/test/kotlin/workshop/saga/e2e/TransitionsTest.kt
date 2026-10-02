@@ -7,7 +7,7 @@ import workshop.saga.e2e.WorkshopClient.createTransfer
 import workshop.saga.e2e.WorkshopClient.newSender
 import workshop.saga.e2e.WorkshopClient.transitions
 
-/** O log de transições (slide 26): cada mudança de estado é um fato registrado. */
+/** O log de transições (slide 27): cada mudança de estado é um fato registrado. */
 class TransitionsTest {
 
     @Test

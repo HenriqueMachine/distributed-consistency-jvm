@@ -13,7 +13,7 @@ spring:
       group-id: pix-service
       auto-offset-reset: earliest
     listener:
-      # Commit do offset depois de cada mensagem processada: at-least-once (slide 30).
+      # Commit do offset depois de cada mensagem processada: at-least-once (slide 31).
       ack-mode: record
 
 server:

@@ -30,7 +30,7 @@ import java.time.Clock
 import java.util.UUID
 
 /**
- * Executa as decisões da [SagaStateMachine] (slide 24): carrega a saga, pede a decisão,
+ * Executa as decisões da [SagaStateMachine] (slide 25): carrega a saga, pede a decisão,
  * grava o novo estado, registra a transição e envia os comandos. Toda a regra de "o que
  * fazer" está na máquina de estados; aqui fica só o "como fazer".
  *

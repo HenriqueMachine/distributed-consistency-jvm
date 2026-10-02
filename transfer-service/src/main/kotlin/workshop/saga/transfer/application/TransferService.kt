@@ -29,7 +29,7 @@ class TransferService(
     /**
      * Grava a transferência e dispara a saga.
      *
-     * Passo 3 (slide 28): o `DebitAccount` é gravado na outbox, na mesma transação da
+     * Passo 3 (slide 29): o `DebitAccount` é gravado na outbox, na mesma transação da
      * transferência. Se algo falhar antes do commit, transferência e mensagem somem juntas.
      */
     @Transactional

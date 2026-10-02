@@ -34,7 +34,7 @@ data class SagaTimeouts(
 }
 
 /**
- * O coração do orquestrador (slides 23, 24 e 37): dado o estado atual e um evento, decide o
+ * O coração do orquestrador (slides 24, 25 e 37): dado o estado atual e um evento, decide o
  * próximo estado e quais comandos enviar. `(estado, resposta) → (novo estado, comandos)`.
  *
  * É uma função pura: não lê banco, não publica mensagem, não consulta o relógio (o `now`
@@ -46,7 +46,7 @@ data class SagaTimeouts(
  * - no timeout, reenvia o mesmo comando (mesma chave: transferId), o participante é
  *   idempotente; no débito, a saga entra em DEBIT_UNKNOWN para deixar explícito o "não sei";
  * - tentativas esgotadas levam a NEEDS_ATTENTION, inclusive na compensação
- *   (não existe compensação da compensação, slide 25);
+ *   (não existe compensação da compensação, slide 26);
  * - só se compensa diante de um "não" explícito;
  * - em NEEDS_ATTENTION, só uma resposta de sucesso (ex.: resgate pelo Mortician) tira a saga de lá.
  */
