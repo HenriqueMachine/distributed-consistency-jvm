@@ -13,7 +13,7 @@ import workshop.saga.e2e.WorkshopClient.statement
 class SagaFlowTest {
 
     @Test
-    fun `caminho feliz - debita, liquida o Pix e conclui`() {
+    fun `happy path - debits, settles the Pix and completes`() {
         val sender = newSender(balance = "1000.00")
 
         val transfer = createTransfer(from = sender, to = "henrique", amount = "150.00")
@@ -26,7 +26,7 @@ class SagaFlowTest {
     }
 
     @Test
-    fun `conta destino encerrada - estorna e cancela`() {
+    fun `closed destination account - refunds and cancels`() {
         val sender = newSender(balance = "1000.00")
 
         val transfer = createTransfer(from = sender, to = "conta-encerrada")
@@ -39,7 +39,7 @@ class SagaFlowTest {
     }
 
     @Test
-    fun `saldo insuficiente - cancela sem debitar`() {
+    fun `insufficient balance - cancels without debiting`() {
         val sender = newSender(balance = "100.00")
 
         val transfer = createTransfer(from = sender, amount = "150.00")

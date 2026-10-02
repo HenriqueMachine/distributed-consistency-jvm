@@ -6,11 +6,11 @@ import org.springframework.transaction.annotation.Transactional
 import workshop.saga.contracts.AccountReply
 import workshop.saga.contracts.Cid
 import workshop.saga.contracts.DebitAccount
-import workshop.saga.contracts.Envelope
 import workshop.saga.contracts.Message
 import workshop.saga.contracts.MessageCodec
 import workshop.saga.contracts.PixReply
 import workshop.saga.contracts.RefundDebit
+import workshop.saga.contracts.SagaMessage
 import workshop.saga.contracts.SendPix
 import workshop.saga.messaging.MessagePublisher
 import workshop.saga.messaging.inbox.Inbox
@@ -59,7 +59,7 @@ class SagaOrchestrator(
 
     /** Aplica a resposta de um participante. Uma resposta entregue de novo é ignorada. */
     @Transactional
-    fun onReply(reply: Envelope, event: SagaEvent) {
+    fun onReply(reply: SagaMessage, event: SagaEvent) {
         if (!inbox.firstDelivery(reply)) return
         val transferId = TransferId(reply.transferId)
         handle(transferId, event, Cause(reply.messageId, reply.cid ?: Cid.root(transferId.value)))
@@ -91,7 +91,7 @@ class SagaOrchestrator(
                 transitions.append(decision.toTransition(cause))
                 val root = Cid.root(transfer.id.value)
                 decision.commands.forEach {
-                    publisher.publish(Envelope.of(it, transfer.simulation, root.child(segmentOf(it))))
+                    publisher.publish(SagaMessage.of(it, transfer.simulation, root.child(segmentOf(it))))
                 }
                 metrics.transition(decision.from, decision.saga.state)
                 // Toda transição vira log, com motivo, tentativa e o evento que a causou (slide 46).

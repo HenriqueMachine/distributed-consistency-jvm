@@ -14,9 +14,9 @@ import workshop.saga.contracts.AccountReply
 import workshop.saga.contracts.DebitAccount
 import workshop.saga.contracts.DebitDeclined
 import workshop.saga.contracts.DebitRefunded
-import workshop.saga.contracts.Envelope
 import workshop.saga.contracts.Money
 import workshop.saga.contracts.RefundDebit
+import workshop.saga.contracts.SagaMessage
 import workshop.saga.messaging.MessagePublisher
 import workshop.saga.messaging.inbox.Inbox
 import java.time.Duration
@@ -39,7 +39,7 @@ class DebitService(
 ) {
     /** Debita a conta de origem uma única vez, ou recusa se a regra não aprovar. */
     @Transactional
-    fun debit(command: DebitAccount, request: Envelope) {
+    fun debit(command: DebitAccount, request: SagaMessage) {
         if (!inbox.firstDelivery(request)) return
 
         val existing = debits.findByTransferId(command.transferId)
@@ -68,7 +68,7 @@ class DebitService(
 
     /** Compensação: devolve o débito à conta de origem, uma única vez. */
     @Transactional
-    fun refund(command: RefundDebit, request: Envelope) {
+    fun refund(command: RefundDebit, request: SagaMessage) {
         if (!inbox.firstDelivery(request)) return
 
         val debit = debits.findByTransferId(command.transferId)
@@ -89,7 +89,7 @@ class DebitService(
         log.info("estornado {} para {} debitId={} → DebitRefunded", debit.amount, debit.from, debit.id)
     }
 
-    private fun reply(reply: AccountReply, request: Envelope, delay: Duration = Duration.ZERO) =
+    private fun reply(reply: AccountReply, request: SagaMessage, delay: Duration = Duration.ZERO) =
         publisher.publish(request.reply(reply), delay)
 
     private companion object {

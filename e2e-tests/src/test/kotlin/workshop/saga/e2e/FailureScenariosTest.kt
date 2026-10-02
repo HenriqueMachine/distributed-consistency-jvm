@@ -24,7 +24,7 @@ import java.util.UUID
 class FailureScenariosTest {
 
     @Test
-    fun `CRASH_AFTER_SEND - transferencia e mensagem caem juntas, ninguem e debitado`() {
+    fun `CRASH_AFTER_SEND - transfer and message roll back together, nobody is debited`() {
         val transferId = createTransferExpectingFailure(from = newSender(), simulate = "CRASH_AFTER_SEND")
 
         assertThat(transfer(transferId)).isNull()
@@ -34,7 +34,7 @@ class FailureScenariosTest {
     }
 
     @Test
-    fun `DUPLICATE - a mensagem repetida e ignorada, um debito so`() {
+    fun `DUPLICATE - the repeated message is ignored, a single debit`() {
         val sender = newSender(balance = "1000.00")
 
         val transfer = createTransfer(from = sender, simulate = "DUPLICATE")
@@ -48,7 +48,7 @@ class FailureScenariosTest {
     }
 
     @Test
-    fun `DEBIT_SLOW - timeout vira UNKNOWN, o reenvio recebe o resultado anterior e a transferencia conclui`() {
+    fun `DEBIT_SLOW - timeout becomes UNKNOWN, the resend gets the previous result and the transfer completes`() {
         val sender = newSender(balance = "1000.00")
 
         val transfer = createTransfer(from = sender, simulate = "DEBIT_SLOW")
@@ -60,7 +60,7 @@ class FailureScenariosTest {
     }
 
     @Test
-    fun `PIX_CRASH - retry com backoff, DLT a cada tentativa da saga e NEEDS_ATTENTION`() {
+    fun `PIX_CRASH - retry with backoff, DLT on every saga attempt and NEEDS_ATTENTION`() {
         val transfer = createTransfer(from = newSender(), simulate = "PIX_CRASH")
 
         // 3 tentativas da saga × (1 s + 2 s + 4 s de retry) com prazo de 12 s cada.
@@ -74,7 +74,7 @@ class FailureScenariosTest {
     }
 
     @Test
-    fun `payload invalido vai direto para a DLT, sem retry`() {
+    fun `invalid payload goes straight to the DLT, without retry`() {
         val key = "invalid-${UUID.randomUUID()}"
         val sentAt = System.currentTimeMillis()
         WorkshopKafka.send(

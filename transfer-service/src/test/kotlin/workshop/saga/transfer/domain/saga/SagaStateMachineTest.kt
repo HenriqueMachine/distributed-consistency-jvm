@@ -39,7 +39,7 @@ class SagaStateMachineTest {
     private fun decide(saga: Saga, event: SagaEvent, at: Instant = now) = machine.decide(transfer, saga, event, at)
 
     @Test
-    fun `transferencia criada pede o debito e comeca a contar o prazo`() {
+    fun `created transfer requests the debit and starts the deadline`() {
         val decision = assertIs<Decision.Transition>(decide(sagaIn(CREATED), SagaEvent.TransferPlaced))
 
         assertEquals(DEBIT_PENDING, decision.saga.state)
@@ -49,7 +49,7 @@ class SagaStateMachineTest {
     }
 
     @Test
-    fun `debito aprovado pede o Pix`() {
+    fun `approved debit requests the Pix`() {
         val decision = assertIs<Decision.Transition>(decide(sagaIn(DEBIT_PENDING), SagaEvent.AccountDebited("d-1")))
 
         assertEquals(PIX_PENDING, decision.saga.state)
@@ -58,7 +58,7 @@ class SagaStateMachineTest {
     }
 
     @Test
-    fun `Pix liquidado conclui a transferencia`() {
+    fun `settled Pix completes the transfer`() {
         val decision = assertIs<Decision.Transition>(decide(sagaIn(PIX_PENDING), SagaEvent.PixSettled("E1042")))
 
         assertEquals(COMPLETED, decision.saga.state)
@@ -66,7 +66,7 @@ class SagaStateMachineTest {
     }
 
     @Test
-    fun `Pix recusado compensa com estorno e depois cancela`() {
+    fun `rejected Pix compensates with a refund and then cancels`() {
         val refunding = assertIs<Decision.Transition>(decide(sagaIn(PIX_PENDING), SagaEvent.PixRejected("conta encerrada")))
         assertEquals(REFUNDING, refunding.saga.state)
         assertEquals(listOf(RefundDebit(1042)), refunding.commands)
@@ -76,7 +76,7 @@ class SagaStateMachineTest {
     }
 
     @Test
-    fun `debito recusado cancela sem compensar nada`() {
+    fun `declined debit cancels without compensating anything`() {
         val decision = assertIs<Decision.Transition>(decide(sagaIn(DEBIT_PENDING), SagaEvent.DebitDeclined("saldo insuficiente")))
 
         assertEquals(CANCELLED, decision.saga.state)
@@ -84,12 +84,12 @@ class SagaStateMachineTest {
     }
 
     @Test
-    fun `timeout antes do prazo e ignorado`() {
+    fun `timeout before the deadline is ignored`() {
         assertIs<Decision.Ignore>(decide(sagaIn(DEBIT_PENDING, deadlineAt = now.plusSeconds(1)), SagaEvent.TimedOut))
     }
 
     @Test
-    fun `timeout do debito leva a UNKNOWN e pergunta de novo com a mesma chave, sem compensar`() {
+    fun `debit timeout leads to UNKNOWN and asks again with the same key, without compensating`() {
         val decision = assertIs<Decision.Transition>(decide(sagaIn(DEBIT_PENDING, deadlineAt = now, attempts = 1), SagaEvent.TimedOut))
 
         assertEquals(DEBIT_UNKNOWN, decision.saga.state)
@@ -99,21 +99,21 @@ class SagaStateMachineTest {
     }
 
     @Test
-    fun `resposta ao reenvio tira a saga de UNKNOWN e segue o fluxo`() {
+    fun `reply to the resend takes the saga out of UNKNOWN and moves on`() {
         val decision = assertIs<Decision.Transition>(decide(sagaIn(DEBIT_UNKNOWN), SagaEvent.AccountDebited("d-1")))
 
         assertEquals(PIX_PENDING, decision.saga.state)
     }
 
     @Test
-    fun `um nao explicito em UNKNOWN cancela`() {
+    fun `an explicit no in UNKNOWN cancels`() {
         val decision = assertIs<Decision.Transition>(decide(sagaIn(DEBIT_UNKNOWN), SagaEvent.DebitDeclined("saldo insuficiente")))
 
         assertEquals(CANCELLED, decision.saga.state)
     }
 
     @Test
-    fun `tentativas esgotadas levam a NEEDS_ATTENTION, sem compensar`() {
+    fun `exhausted attempts lead to NEEDS_ATTENTION, without compensating`() {
         val decision = assertIs<Decision.Transition>(decide(sagaIn(DEBIT_UNKNOWN, deadlineAt = now, attempts = 3), SagaEvent.TimedOut))
 
         assertEquals(NEEDS_ATTENTION, decision.saga.state)
@@ -121,7 +121,7 @@ class SagaStateMachineTest {
     }
 
     @Test
-    fun `timeout do Pix reenvia com a mesma chave e, esgotado, para em NEEDS_ATTENTION`() {
+    fun `Pix timeout resends with the same key and, when exhausted, stops at NEEDS_ATTENTION`() {
         val retry = assertIs<Decision.Transition>(decide(sagaIn(PIX_PENDING, deadlineAt = now, attempts = 1), SagaEvent.TimedOut))
         assertEquals(PIX_PENDING, retry.saga.state)
         assertEquals(listOf(SendPix(1042, "henrique", 15_000)), retry.commands)
@@ -133,7 +133,7 @@ class SagaStateMachineTest {
     }
 
     @Test
-    fun `compensacao tambem tem prazo - reenvia o estorno e, esgotado, NEEDS_ATTENTION`() {
+    fun `compensation has a deadline too - resends the refund and, when exhausted, NEEDS_ATTENTION`() {
         val retry = assertIs<Decision.Transition>(decide(sagaIn(REFUNDING, deadlineAt = now, attempts = 1), SagaEvent.TimedOut))
         assertEquals(listOf(RefundDebit(1042)), retry.commands)
 
@@ -142,12 +142,12 @@ class SagaStateMachineTest {
     }
 
     @Test
-    fun `resposta original que chega atrasada depois do reenvio e ignorada`() {
+    fun `original reply arriving late after the resend is ignored`() {
         assertIs<Decision.Ignore>(decide(sagaIn(PIX_PENDING), SagaEvent.AccountDebited("d-1")))
     }
 
     @Test
-    fun `resposta que chega depois do fim da saga e ignorada`() {
+    fun `reply arriving after the saga ended is ignored`() {
         assertIs<Decision.Ignore>(decide(sagaIn(CANCELLED), SagaEvent.AccountDebited("d-1")))
         assertIs<Decision.Ignore>(decide(sagaIn(COMPLETED), SagaEvent.PixSettled("E1042")))
         assertIs<Decision.Ignore>(decide(sagaIn(NEEDS_ATTENTION), SagaEvent.AccountDebited("d-1")))
@@ -155,7 +155,7 @@ class SagaStateMachineTest {
     }
 
     @Test
-    fun `resgate pelo Mortician - sucesso que chega em NEEDS_ATTENTION conclui a saga`() {
+    fun `Mortician rescue - success arriving in NEEDS_ATTENTION completes the saga`() {
         val settled = assertIs<Decision.Transition>(decide(sagaIn(NEEDS_ATTENTION), SagaEvent.PixSettled("E1042")))
         assertEquals(COMPLETED, settled.saga.state)
 

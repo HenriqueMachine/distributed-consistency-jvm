@@ -207,7 +207,7 @@ inverte a asserção.
 - Imutabilidade (`val`, data classes), funções curtas, sem `!!`.
 - KDoc em todo tipo e função pública, explicando o papel na saga. Os comentários
   explicam o porquê e citam o passo e o slide. Defeitos intencionais ficam marcados com
-  `⚠ QUEBRA passo-N` (encontre com `git grep QUEBRA`).
+  `⚠ QUEBRA passo-N` nas tags (encontre com `git grep QUEBRA`; na `main` não há nenhum).
 
 ## Fora de escopo
 

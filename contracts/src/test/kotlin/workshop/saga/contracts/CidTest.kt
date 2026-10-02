@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 class CidTest {
 
     @Test
-    fun `a raiz e o id da transferencia e cada filho acrescenta um segmento`() {
+    fun `the root is the transfer id and each child appends a segment`() {
         val root = Cid.root(1042)
         val pix = root.child("PIX")
         val spi = pix.child("SPI")

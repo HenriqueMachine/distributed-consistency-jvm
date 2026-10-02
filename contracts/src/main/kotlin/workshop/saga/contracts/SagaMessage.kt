@@ -3,10 +3,11 @@ package workshop.saga.contracts
 import java.util.UUID
 
 /**
- * Uma mensagem e os metadados da entrega que viajam nos headers Kafka: a identidade da
- * mensagem, a simulação pedida e o correlation id.
+ * Uma mensagem da saga como ela circula entre os serviços: o conteúdo ([message]) mais o que
+ * viaja nos headers Kafka. O [messageId] é a identidade da entrega (idempotência, camada 1),
+ * o [cid] é o correlation id e a [simulation] é a falha pedida pela apresentação.
  */
-data class Envelope(
+data class SagaMessage(
     val messageId: UUID,
     val message: Message,
     val simulation: Simulation? = null,
@@ -24,6 +25,6 @@ data class Envelope(
     companion object {
         /** Nova mensagem: um [messageId] novo a cada envio. */
         fun of(message: Message, simulation: Simulation? = null, cid: Cid? = null) =
-            Envelope(UUID.randomUUID(), message, simulation, cid)
+            SagaMessage(UUID.randomUUID(), message, simulation, cid)
     }
 }

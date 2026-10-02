@@ -3,8 +3,8 @@ package workshop.saga.messaging.outbox
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Repository
 import workshop.saga.contracts.Cid
-import workshop.saga.contracts.Envelope
 import workshop.saga.contracts.MessageCodec
+import workshop.saga.contracts.SagaMessage
 import workshop.saga.contracts.Simulation
 import workshop.saga.contracts.Topics
 import java.time.Duration
@@ -15,16 +15,16 @@ import java.util.UUID
 class OutboxRepository(private val jdbc: JdbcClient) {
 
     /** Grava a mensagem para o relay publicar a partir de agora + [delay]. */
-    fun save(envelope: Envelope, delay: Duration = Duration.ZERO) =
+    fun save(sagaMessage: SagaMessage, delay: Duration = Duration.ZERO) =
         save(
             OutboxRecord(
-                messageId = envelope.messageId,
-                topic = Topics.of(envelope.message),
-                key = envelope.transferId.toString(),
-                type = envelope.type,
-                payload = MessageCodec.encode(envelope.message),
-                simulation = envelope.simulation,
-                cid = envelope.cid,
+                messageId = sagaMessage.messageId,
+                topic = Topics.of(sagaMessage.message),
+                key = sagaMessage.transferId.toString(),
+                type = sagaMessage.type,
+                payload = MessageCodec.encode(sagaMessage.message),
+                simulation = sagaMessage.simulation,
+                cid = sagaMessage.cid,
             ),
             delay,
         )

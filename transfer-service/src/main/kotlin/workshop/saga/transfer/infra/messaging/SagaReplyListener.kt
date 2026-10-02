@@ -24,8 +24,8 @@ class SagaReplyListener(private val orchestrator: SagaOrchestrator) {
     /** Uma resposta do account-service ou do pix-service. */
     @KafkaListener(topics = [Topics.ACCOUNT_REPLIES, Topics.PIX_REPLIES])
     fun onReply(record: ConsumerRecord<String, String>) {
-        val envelope = IncomingMessage.read(record)
-        orchestrator.onReply(envelope, envelope.message.toSagaEvent())
+        val sagaMessage = IncomingMessage.read(record)
+        orchestrator.onReply(sagaMessage, sagaMessage.message.toSagaEvent())
     }
 
     private fun Message.toSagaEvent(): SagaEvent = when (this) {

@@ -565,6 +565,197 @@
           }
         }
       ]
+    },
+    {
+      "name": "Cookbook (on-call)",
+      "description": "As receitas de docs/oncall/cookbook.md, na ordem. O alerta aponta o runbook; o runbook aponta estas receitas.",
+      "item": [
+        {
+          "name": "0 · Provocar o incidente (PIX_CRASH)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Simulate",
+                "value": "PIX_CRASH"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{transferUrl}}/transfers",
+            "description": "Ensaio do plantão. Em ~10 s a mensagem vai para pix.commands.DLT; em ~40 s a saga vai para NEEDS_ATTENTION. Guarda o id em {{transferId}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"{{from}}\",\n  \"to\": \"henrique\",\n  \"amount\": 150.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da transferência criada: as próximas requisições usam {{transferId}}.",
+                  "const body = pm.response.json();",
+                  "const id = body.id ?? body.transferId;",
+                  "if (id) { pm.collectionVariables.set('transferId', id); console.log('transferId =', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1 · Estado da saga",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{transferUrl}}/transfers/{{transferId}}",
+            "description": "Receita 1: onde a saga parou."
+          }
+        },
+        {
+          "name": "1 · Transições da saga",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{transferUrl}}/transfers/{{transferId}}/transitions",
+            "description": "Receita 1: cada transição com motivo, evento, cid e versão do código."
+          }
+        },
+        {
+          "name": "2 · Débitos e estornos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{accountUrl}}/debits?transferId={{transferId}}",
+            "description": "Receita 2: o dinheiro saiu da origem? Voltou?"
+          }
+        },
+        {
+          "name": "2 · Créditos do Pix",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{pixUrl}}/pix?transferId={{transferId}}",
+            "description": "Receita 2: o dinheiro chegou no destino?"
+          }
+        },
+        {
+          "name": "2 · Saldos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{accountUrl}}/participants",
+            "description": "Receita 2: saldos atuais."
+          }
+        },
+        {
+          "name": "3 · Mensagens mortas desta transferência",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{morticianUrl}}/dead-letters?status=NEW&transferId={{transferId}}",
+            "description": "Receita 3. Leia originalTopic e error antes de resgatar. Guarda a mais recente em {{deadLetterId}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda o id da mensagem morta mais recente: o resgate usa {{deadLetterId}}.",
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) { pm.collectionVariables.set('deadLetterId', list[0].id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3 · Investigar a mensagem morta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{morticianUrl}}/dead-letters/{{deadLetterId}}",
+            "description": "Receita 3: payload e erro. InvalidPayloadException: não republique, escale."
+          }
+        },
+        {
+          "name": "4 · Resgatar, com motivo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{morticianUrl}}/dead-letters/{{deadLetterId}}/republish",
+            "description": "Receita 4. Só depois de entender e corrigir a causa. Repetir devolve 409.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"bug do PIX_CRASH corrigido no deploy\",\n  \"requestedBy\": \"henrique\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "5 · Estado do SPI e do circuito",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{pixUrl}}/spi",
+            "description": "Receita 5: OPEN = consumidor pausado, mensagens esperando no tópico."
+          }
+        },
+        {
+          "name": "5 · Circuit breakers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{pixUrl}}/actuator/circuitbreakers",
+            "description": "Receita 5: detalhes do circuito spi."
+          }
+        },
+        {
+          "name": "6 · Sagas paradas (NEEDS_ATTENTION)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{transferUrl}}/actuator/metrics/saga.state?tag=state:NEEDS_ATTENTION",
+            "description": "Receita 6: o incidente acabou quando volta a zero."
+          }
+        },
+        {
+          "name": "6 · Sagas em DEBIT_UNKNOWN",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{transferUrl}}/actuator/metrics/saga.state?tag=state:DEBIT_UNKNOWN",
+            "description": "Receita 6: a saga ainda está tentando o débito."
+          }
+        },
+        {
+          "name": "6 · Mensagens na DLT (pix-service)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{pixUrl}}/actuator/metrics/saga.dlt.messages",
+            "description": "Receita 6: contador; 404 antes da primeira mensagem morta."
+          }
+        }
+      ]
     }
   ]
 }

@@ -8,7 +8,7 @@ import kotlin.test.assertTrue
 class MoneyTest {
 
     @Test
-    fun `converte reais em centavos e formata como no extrato`() {
+    fun `converts reais to cents and formats like the statement`() {
         val money = Money.of(BigDecimal("150.00"))
 
         assertEquals(15_000, money.cents)
@@ -16,14 +16,14 @@ class MoneyTest {
     }
 
     @Test
-    fun `soma, subtrai e compara sem ponto flutuante`() {
+    fun `adds, subtracts and compares without floating point`() {
         assertEquals(Money(850), Money(1_000) - Money(150))
         assertEquals(Money(1_150), Money(1_000) + Money(150))
         assertTrue(Money(100) < Money(150))
     }
 
     @Test
-    fun `recusa fracao de centavo e valor grande demais`() {
+    fun `rejects fractions of a cent and amounts too large`() {
         kotlin.test.assertFailsWith<IllegalArgumentException> { Money.of(BigDecimal("1.005")) }
         kotlin.test.assertFailsWith<IllegalArgumentException> { Money.of(BigDecimal("1e30")) }
         assertEquals(Money(150), Money.of(BigDecimal("1.50000")))

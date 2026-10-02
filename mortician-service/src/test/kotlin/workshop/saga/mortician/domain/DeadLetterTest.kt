@@ -15,7 +15,7 @@ class DeadLetterTest {
     )
 
     @Test
-    fun `resgate registra quem, por que e quando`() {
+    fun `rescue records who, why and when`() {
         val rescued = dead.republish(by = "henrique", reason = "bug corrigido no deploy 42", at = now)
 
         assertEquals(DeadLetterStatus.REPUBLISHED, rescued.status)
@@ -23,7 +23,7 @@ class DeadLetterTest {
     }
 
     @Test
-    fun `nao republica duas vezes nem sem motivo`() {
+    fun `does not republish twice nor without a reason`() {
         val rescued = dead.republish("henrique", "corrigido", now)
 
         assertFailsWith<AlreadyRepublishedException> { rescued.republish("outra", "de novo", now) }

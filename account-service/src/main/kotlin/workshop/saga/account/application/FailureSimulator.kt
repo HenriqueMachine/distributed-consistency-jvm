@@ -3,7 +3,7 @@ package workshop.saga.account.application
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import workshop.saga.contracts.Envelope
+import workshop.saga.contracts.SagaMessage
 import workshop.saga.contracts.Simulation
 import java.time.Duration
 
@@ -19,7 +19,7 @@ class FailureSimulator(
      * `DEBIT_SLOW`: o débito é feito e gravado na hora, mas a resposta fica retida na
      * outbox. Para o orquestrador, é indistinguível de uma rede lenta (slide 38).
      */
-    fun replyDelayFor(request: Envelope): Duration =
+    fun replyDelayFor(request: SagaMessage): Duration =
         if (request.simulation == Simulation.DEBIT_SLOW) {
             log.warn("simulate=DEBIT_SLOW: resposta retida por {}s", slowReplyDelay.toSeconds())
             slowReplyDelay

@@ -35,7 +35,7 @@ TRF-1042
 | Onde | O quê |
 |---|---|
 | `contracts/.../Cid.kt` | `Cid.root(1042)` e `child("PIX")` |
-| `contracts/.../Envelope.kt` | `cid` + `reply(message)`: a resposta herda o cid do comando |
+| `contracts/.../SagaMessage.kt` | `cid` + `reply(message)`: a resposta herda o cid do comando |
 | `shared-messaging/.../observability/SagaContext.kt` | `with(transferId, cid) { … }`: põe no MDC e devolve como estava |
 | `shared-messaging/.../observability/SagaContextRecordInterceptor.kt` | MDC em todo `@KafkaListener`, **inclusive retries e ida à DLT** |
 | `shared-messaging/.../outbox/*` + `V*__outbox_cid.sql` | O cid é gravado na outbox e vai no header `x-cid` |

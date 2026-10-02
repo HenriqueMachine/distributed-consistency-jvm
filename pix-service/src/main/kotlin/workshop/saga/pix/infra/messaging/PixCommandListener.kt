@@ -21,10 +21,10 @@ class PixCommandListener(private val pixService: PixService) {
     /** Um `SendPix`. */
     @KafkaListener(id = LISTENER_ID, idIsGroup = false, topics = [Topics.PIX_COMMANDS])
     fun onCommand(record: ConsumerRecord<String, String>) {
-        val envelope = IncomingMessage.read(record)
-        when (val command = envelope.message) {
-            is SendPix -> pixService.send(command, envelope)
-            else -> throw InvalidPayloadException("${envelope.type} não é um comando de Pix")
+        val sagaMessage = IncomingMessage.read(record)
+        when (val command = sagaMessage.message) {
+            is SendPix -> pixService.send(command, sagaMessage)
+            else -> throw InvalidPayloadException("${sagaMessage.type} não é um comando de Pix")
         }
     }
 

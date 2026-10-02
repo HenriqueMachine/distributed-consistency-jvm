@@ -16,7 +16,7 @@ import java.time.Duration
 class ObservabilityTest {
 
     @Test
-    fun `DEBIT_SLOW - o cid em arvore separa a tentativa 1 do debito da tentativa 2`() {
+    fun `DEBIT_SLOW - the cid tree tells debit attempt 1 apart from attempt 2`() {
         val transfer = createTransfer(from = newSender(), simulate = "DEBIT_SLOW")
         awaitState(transfer.id, "COMPLETED", timeout = Duration.ofSeconds(20))
         val root = "TRF-${transfer.id}"
@@ -33,7 +33,7 @@ class ObservabilityTest {
     }
 
     @Test
-    fun `grep transferId e grep TRF contam a historia, inclusive a chamada ao SPI`() {
+    fun `grep transferId and grep TRF tell the story, including the SPI call`() {
         val transfer = createTransfer(from = newSender())
         awaitState(transfer.id, "COMPLETED")
         val services = listOf("transfer-service", "account-service", "pix-service")
@@ -49,7 +49,7 @@ class ObservabilityTest {
     }
 
     @Test
-    fun `transicoes e sagas por estado aparecem nas metricas`() {
+    fun `transitions and sagas by state show up in the metrics`() {
         val transfer = createTransfer(from = newSender())
         awaitState(transfer.id, "COMPLETED")
 

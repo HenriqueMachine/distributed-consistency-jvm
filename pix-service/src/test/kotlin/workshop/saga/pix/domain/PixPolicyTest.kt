@@ -7,13 +7,13 @@ import kotlin.test.assertIs
 class PixPolicyTest {
 
     @Test
-    fun `qualquer chave recebe`() {
+    fun `any key receives`() {
         assertEquals(PixDecision.Send, PixPolicy.evaluate("henrique"))
         assertEquals(PixDecision.Send, PixPolicy.evaluate("joao"))
     }
 
     @Test
-    fun `conta encerrada e recusada`() {
+    fun `closed account is rejected`() {
         assertIs<PixDecision.Reject>(PixPolicy.evaluate("conta-encerrada"))
     }
 }

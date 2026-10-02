@@ -8,14 +8,14 @@ import kotlin.test.assertFailsWith
 class NewParticipantTest {
 
     @Test
-    fun `cadastro valido vira conta com o saldo inicial`() {
+    fun `valid registration becomes an account with the initial balance`() {
         val account = NewParticipant(" Maria Souza ", "maria", Money(100_000)).toAccount()
 
         assertEquals(Account("maria", "Maria Souza", Money(100_000)), account)
     }
 
     @Test
-    fun `recusa chave reservada, chave invalida, nome vazio e saldo negativo`() {
+    fun `rejects reserved key, invalid key, blank name and negative balance`() {
         assertFailsWith<IllegalArgumentException> { NewParticipant("X", "conta-encerrada", Money(0)) }
         assertFailsWith<IllegalArgumentException> { NewParticipant("X", "Maria Souza", Money(0)) }
         assertFailsWith<IllegalArgumentException> { NewParticipant(" ", "maria", Money(0)) }

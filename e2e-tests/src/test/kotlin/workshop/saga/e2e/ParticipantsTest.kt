@@ -10,7 +10,7 @@ import workshop.saga.e2e.WorkshopClient.uniqueKey
 class ParticipantsTest {
 
     @Test
-    fun `cadastra um participante com saldo inicial`() {
+    fun `registers a participant with an initial balance`() {
         val key = uniqueKey("maria")
 
         val response = registerParticipant("Maria Souza", key, "1000.00")
@@ -20,7 +20,7 @@ class ParticipantsTest {
     }
 
     @Test
-    fun `chave repetida e recusada com 409`() {
+    fun `duplicate key is rejected with 409`() {
         val key = uniqueKey("joao")
         registerParticipant("João", key, "10.00")
 
@@ -28,14 +28,14 @@ class ParticipantsTest {
     }
 
     @Test
-    fun `chave reservada e dados invalidos sao recusados com 400`() {
+    fun `reserved key and invalid data are rejected with 400`() {
         assertThat(registerParticipant("X", "conta-encerrada", "10.00").statusCode()).isEqualTo(400)
         assertThat(registerParticipant("X", "Chave Com Espaço", "10.00").statusCode()).isEqualTo(400)
         assertThat(registerParticipant("X", uniqueKey("neg"), "-1.00").statusCode()).isEqualTo(400)
     }
 
     @Test
-    fun `ana e henrique vem no cadastro inicial`() {
+    fun `ana and henrique come in the initial seed`() {
         assertThat(participant("ana")).isNotNull()
         assertThat(participant("henrique")).isNotNull()
     }

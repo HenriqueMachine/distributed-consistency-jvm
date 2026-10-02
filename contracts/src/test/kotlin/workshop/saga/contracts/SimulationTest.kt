@@ -8,18 +8,18 @@ import kotlin.test.assertNull
 class SimulationTest {
 
     @Test
-    fun `header ausente ou em branco significa nenhuma simulacao`() {
+    fun `missing or blank header means no simulation`() {
         assertNull(Simulation.parse(null))
         assertNull(Simulation.parse("  "))
     }
 
     @Test
-    fun `aceita o nome sem diferenciar maiusculas`() {
+    fun `accepts the name case-insensitively`() {
         assertEquals(Simulation.CRASH_AFTER_SEND, Simulation.parse("crash_after_send"))
     }
 
     @Test
-    fun `valor desconhecido e rejeitado`() {
+    fun `unknown value is rejected`() {
         assertFailsWith<IllegalArgumentException> { Simulation.parse("EXPLODIR") }
     }
 }

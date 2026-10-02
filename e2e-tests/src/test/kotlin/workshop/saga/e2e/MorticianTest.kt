@@ -17,7 +17,7 @@ import java.time.Duration
 class MorticianTest {
 
     @Test
-    fun `PIX_CRASH - o Mortician guarda as mensagens mortas e o resgate conclui a transferencia`() {
+    fun `PIX_CRASH - the Mortician stores the dead messages and the rescue completes the transfer`() {
         val transfer = createTransfer(from = newSender(), simulate = "PIX_CRASH")
         awaitState(transfer.id, "NEEDS_ATTENTION", timeout = Duration.ofSeconds(60))
 
@@ -41,7 +41,7 @@ class MorticianTest {
     }
 
     @Test
-    fun `as linhas de retry e de DLT dizem de qual transferencia sao`() {
+    fun `retry and DLT log lines say which transfer they belong to`() {
         val transfer = createTransfer(from = newSender(), simulate = "PIX_CRASH")
         await atMost Duration.ofSeconds(20) untilAsserted { assertThat(deadLetters(transfer.id)).isNotEmpty() }
 

@@ -11,7 +11,7 @@ import workshop.saga.e2e.WorkshopClient.transitions
 class TransitionsTest {
 
     @Test
-    fun `cada transicao vira uma linha com motivo, evento, cid e versao do codigo`() {
+    fun `each transition becomes a row with reason, event, cid and code version`() {
         val transfer = createTransfer(from = newSender())
         awaitState(transfer.id, "COMPLETED")
 

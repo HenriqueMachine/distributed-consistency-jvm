@@ -36,7 +36,7 @@ O eventId e a chave de negócio pegam os três casos (slide 35).
 
 | Onde | O quê |
 |---|---|
-| `shared-messaging/.../inbox/Inbox.kt` | `firstDelivery(envelope)`: camada 1, `Propagation.MANDATORY` |
+| `shared-messaging/.../inbox/Inbox.kt` | `firstDelivery(sagaMessage)`: camada 1, `Propagation.MANDATORY` |
 | `account-service/.../DebitService.kt` | Inbox + "já debitado → devolvendo resultado anterior" + estorno único |
 | `pix-service/.../PixService.kt` | Inbox + "Pix já liquidado → devolvendo resultado anterior" |
 | `transfer-service/.../SagaOrchestrator.kt` | `onReply` passa pela Inbox; `onTimeout` não passa (timeout não é mensagem) |

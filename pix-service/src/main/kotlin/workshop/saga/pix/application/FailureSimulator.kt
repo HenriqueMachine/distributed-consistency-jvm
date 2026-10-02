@@ -2,7 +2,7 @@ package workshop.saga.pix.application
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import workshop.saga.contracts.Envelope
+import workshop.saga.contracts.SagaMessage
 import workshop.saga.contracts.Simulation
 
 /**
@@ -16,7 +16,7 @@ class PixProcessingException(message: String) : RuntimeException(message)
 class FailureSimulator {
 
     /** `PIX_CRASH`: toda tentativa de enviar o Pix desta transferência falha. */
-    fun beforeSend(request: Envelope) {
+    fun beforeSend(request: SagaMessage) {
         if (request.simulation == Simulation.PIX_CRASH) {
             log.warn("simulate=PIX_CRASH: falha ao processar o Pix")
             throw PixProcessingException("falha ao processar o Pix (simulada) da transferência ${request.transferId}")

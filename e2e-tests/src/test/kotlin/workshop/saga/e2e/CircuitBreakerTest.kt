@@ -25,7 +25,7 @@ class CircuitBreakerTest {
     }
 
     @Test
-    fun `SPI fora do ar - o circuito abre, o consumidor pausa e a transferencia conclui quando o SPI volta`() {
+    fun `SPI down - the circuit opens, the consumer pauses and the transfer completes when the SPI is back`() {
         startSpiOutage(seconds = 15)
 
         val transfer = createTransfer(from = newSender())

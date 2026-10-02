@@ -3,10 +3,10 @@ package workshop.saga.pix.application
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import workshop.saga.contracts.Envelope
 import workshop.saga.contracts.Money
 import workshop.saga.contracts.PixRejected
 import workshop.saga.contracts.PixSettled
+import workshop.saga.contracts.SagaMessage
 import workshop.saga.contracts.SendPix
 import workshop.saga.messaging.MessagePublisher
 import workshop.saga.messaging.inbox.Inbox
@@ -31,7 +31,7 @@ class PixService(
 ) {
     /** Liquida o Pix uma única vez, ou recusa se o destino não puder receber. */
     @Transactional
-    fun send(command: SendPix, request: Envelope) {
+    fun send(command: SendPix, request: SagaMessage) {
         if (!inbox.firstDelivery(request)) return
         failureSimulator.beforeSend(request)
 

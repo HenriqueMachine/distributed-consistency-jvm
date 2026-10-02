@@ -3,10 +3,9 @@
 Código da palestra hands-on **"Transação #1042 · Falha não é exceção: é parte do fluxo"**:
 sagas resilientes com Kotlin, Spring Boot e Kafka.
 
-Uma transferência Pix de R$ 150,00 da Ana para o Henrique atravessa três serviços. Ao longo de
-8 passos, a gente constrói a saga, derruba o sistema de propósito e lê cada falha nos logs.
-Cada passo tem uma tag no git, e em cada tag o sistema funciona **e** tem um defeito
-reproduzível: é ele que motiva o passo seguinte.
+Uma transferência Pix de R$ 150,00 da Ana para o Henrique atravessa três serviços. A gente
+derruba o sistema de propósito, lê cada falha nos logs e mostra o padrão que a resolve: saga,
+outbox, idempotência, timeout, retry + DLT, circuit breaker, Mortician e correlation id.
 
 ```
                               Kafka (KRaft)
@@ -26,7 +25,6 @@ Pré-requisitos: **Docker** com Compose v2, e **JDK 21** (sem JDK, veja a altern
 ```bash
 git clone https://github.com/HenriqueMachine/distributed-consistency-jvm.git
 cd distributed-consistency-jvm
-git checkout passo-1
 
 docker compose up -d                 # Kafka, Kafka UI e um Postgres por serviço
 ./gradlew bootRun --parallel         # os serviços (deixe este terminal aberto)
@@ -47,13 +45,13 @@ tail -f logs/*.log                   # cada serviço loga também em logs/<servi
 docker compose --profile apps up -d --build --wait
 ```
 
-Ao trocar de passo, recrie o ambiente para começar do zero. A primeira transferência
-volta a ser a 1042, então apague também os logs: senão `grep TRF-1042` mistura histórias.
+Para começar do zero (antes de apresentar, por exemplo), recrie o ambiente. A primeira
+transferência volta a ser a 1042, então apague também os logs: senão `grep TRF-1042`
+mistura histórias.
 
 ```bash
 docker compose --profile apps down     # derruba infra (e serviços, se estiverem no Docker)
 rm -rf logs                            # no Linux, se os serviços rodaram no Docker: sudo rm -rf logs
-git checkout passo-2
 docker compose up -d && ./gradlew bootRun --parallel
 ```
 
@@ -63,15 +61,46 @@ docker compose up -d && ./gradlew bootRun --parallel
 | http://localhost:8081 | transfer-service (`POST /transfers`, `GET /transfers/{id}`) |
 | http://localhost:8082 | account-service (`POST/GET /participants`) |
 | http://localhost:8083 | pix-service (`GET /spi`, `POST /spi/outage`) |
-| http://localhost:8084 | mortician-service (`GET /dead-letters`, `POST /dead-letters/{id}/republish`), a partir do passo 7 |
+| http://localhost:8084 | mortician-service (`GET /dead-letters`, `POST /dead-letters/{id}/republish`) |
+
+## Mapa: falha → padrão → código
+
+O que pode dar errado com o Pix da Ana, o padrão que resolve e onde ele está no código.
+
+| O que pode dar errado | Padrão | Onde olhar |
+|---|---|---|
+| Três serviços precisam agir juntos | Saga orquestrada | [`SagaStateMachine.decide()`](transfer-service/src/main/kotlin/workshop/saga/transfer/domain/saga/SagaStateMachine.kt) |
+| Um passo falha no meio | Compensação | [`DebitService.refund()`](account-service/src/main/kotlin/workshop/saga/account/application/DebitService.kt) |
+| O servidor cai entre o banco e o Kafka | Outbox | [`MessagePublisher`](shared-messaging/src/main/kotlin/workshop/saga/messaging/MessagePublisher.kt) · [`OutboxRelay`](shared-messaging/src/main/kotlin/workshop/saga/messaging/outbox/OutboxRelay.kt) |
+| A mensagem chega duas vezes | Idempotência | [`Inbox`](shared-messaging/src/main/kotlin/workshop/saga/messaging/inbox/Inbox.kt) · [`unique (transfer_id)`](account-service/src/main/resources/db/migration/V6__one_debit_per_transfer.sql) |
+| Ninguém responde | Timeout = "não sei" | [`SagaTimeoutScanner`](transfer-service/src/main/kotlin/workshop/saga/transfer/infra/scheduling/SagaTimeoutScanner.kt) · `DEBIT_UNKNOWN` |
+| A mensagem falha sempre | Retry + DLT | [`KafkaErrorHandlingConfig`](shared-messaging/src/main/kotlin/workshop/saga/messaging/errors/KafkaErrorHandlingConfig.kt) |
+| O parceiro cai para todo mundo | Circuit breaker | [`SpiGateway`](pix-service/src/main/kotlin/workshop/saga/pix/infra/spi/SpiGateway.kt) · [`SpiCircuitBreakerListener`](pix-service/src/main/kotlin/workshop/saga/pix/infra/spi/SpiCircuitBreakerListener.kt) |
+| A DLT enche e ninguém olha | Mortician | [`DeadLetterService.republish()`](mortician-service/src/main/kotlin/workshop/saga/mortician/application/DeadLetterService.kt) |
+| "Cadê o dinheiro da Ana?" | Correlation id e logs | [`Cid`](contracts/src/main/kotlin/workshop/saga/contracts/Cid.kt) · [`SagaContext`](shared-messaging/src/main/kotlin/workshop/saga/messaging/observability/SagaContext.kt) |
+
+Tudo que tem `Simulation` (`FailureSimulator`, header `X-Simulate`, `SpiOutage`, `GET /pix`,
+`GET /debits`) é andaime da apresentação: existe só para provocar e provar falhas ao vivo.
+
+## On-call: runbooks e cookbook
+
+Quando o incidente acontece, o alerta aponta um **runbook** (o quê: impacto, onde olhar,
+quando escalar), e o runbook aponta **receitas** do cookbook (como: os comandos exatos).
+
+- [docs/oncall](docs/oncall/README.md): alertas, runbooks e um ensaio de plantão do começo ao fim.
+- [Cookbook](docs/oncall/cookbook.md): contar a história de uma transferência, conferir o
+  dinheiro, resgatar da DLT, ver o circuito.
+- Runbooks: [mensagem na DLT](docs/oncall/runbooks/dlt.md),
+  [saga parada](docs/oncall/runbooks/saga-parada.md),
+  [SPI fora do ar](docs/oncall/runbooks/circuito-aberto.md).
 
 ### Collection do Postman
 
 Importe [`postman/transacao-1042.postman_collection.json`](postman/transacao-1042.postman_collection.json)
 no Postman (*Import* → arraste o arquivo). Insomnia e Bruno também importam esse formato.
 
-- As pastas seguem os passos da apresentação, e cada requisição explica o que esperar em
-  cada passo.
+- As pastas seguem os padrões da apresentação, e cada requisição explica o que esperar.
+- A pasta **Cookbook (on-call)** tem as receitas do [cookbook](docs/oncall/cookbook.md), na ordem.
 - Todo `POST /transfers` guarda o id criado na variável `{{transferId}}`. As requisições
   da pasta **Consultas** (estado, transições, extrato, Pix) usam essa variável, então não
   é preciso copiar o id.
@@ -103,15 +132,15 @@ O Kafka UI roda em **http://localhost:8080** (sobe junto com a infra). Ele mostr
 
 - **Topics** → um tópico (ex.: `account.commands`) → aba **Messages**: cada mensagem com a
   chave (`transferId`), o payload JSON e os **headers**: `messageId`, `messageType`,
-  `simulate` e, a partir do passo 8, `x-cid`. Clique numa mensagem para ver tudo.
+  `simulate` e `x-cid`. Clique numa mensagem para ver tudo.
 - Para achar uma transferência: em **Messages**, filtre por **Key** = `1042`.
 - **Consumers** → um consumer group (ex.: `pix-service`): partições, offset commitado e
-  **lag**. No passo 6, derrube o SPI e veja o lag do `pix-service` crescer enquanto o
-  circuito está aberto.
-- A partir do passo 6, os tópicos `*.DLT` guardam as mensagens que morreram. Os headers
+  **lag**. Derrube o SPI e veja o lag do `pix-service` crescer enquanto o circuito está
+  aberto.
+- Os tópicos `*.DLT` guardam as mensagens que morreram. Os headers
   `kafka_dlt-*` contam de onde elas vieram e por quê.
 - **Produce Message** (dentro de um tópico) publica uma mensagem na mão. É útil para
-  injetar um payload inválido e ver a DLT funcionar (guia do passo 6).
+  injetar um payload inválido e ver a DLT funcionar.
 
 ### Participantes da sala
 
@@ -131,7 +160,11 @@ curl -s localhost:8082/participants  # saldos antes e depois
 Quem envia precisa estar cadastrado. Quem recebe é só uma chave Pix: o pix-service faz o
 papel do "outro banco" e aceita qualquer chave, menos `conta-encerrada`.
 
-## Roteiro
+## Estude passo a passo (opcional)
+
+Na apresentação roda o projeto completo, na `main`. Para estudar com calma, o código também
+foi construído em 8 passos, um por tag: em cada tag o sistema funciona **e** tem um defeito
+reproduzível, que motiva o passo seguinte.
 
 | Tag | Passo | Guia | Quebra que motiva o próximo |
 |---|---|---|---|
@@ -147,6 +180,8 @@ papel do "outro banco" e aceita qualquer chave, menos `conta-encerrada`.
 > Cada guia nasce na tag do seu passo. Navegando por uma tag antiga no GitHub, os links
 > dos passos seguintes ainda não existem: veja a `main`.
 
+Para voltar a um passo: `git checkout passo-3`, e recrie o ambiente (veja **Como rodar**).
+
 Depois do passo 8: [laboratório final](docs/lab.md). Reconstrua a história de cada
 transação só pelos logs.
 
@@ -156,8 +191,8 @@ Para ver exatamente o que um passo mudou:
 git diff passo-2 passo-3 -- '*.kt' '*.sql'
 ```
 
-Os defeitos intencionais estão marcados no código com `⚠ QUEBRA passo-N`. Para achá-los:
-`git grep QUEBRA`.
+Nas tags, os defeitos intencionais estão marcados no código com `⚠ QUEBRA passo-N`. Para
+achá-los: `git grep QUEBRA` (na `main` não há nenhum).
 
 ## Estrutura do código
 
@@ -167,7 +202,7 @@ shared-messaging/    outbox, idempotência e tratamento de erro do Kafka
 transfer-service/    REST + orquestrador da saga
 account-service/     participantes, débito e estorno
 pix-service/         SPI simulado e crédito no destino
-mortician-service/   dono das DLTs (passo 7)
+mortician-service/   dono das DLTs
 e2e-tests/           cenários ponta a ponta
 ```
 
@@ -182,7 +217,7 @@ decisões de design estão em [docs/design.md](docs/design.md).
 ./gradlew e2e        # cenários ponta a ponta, com o ambiente no ar (bootRun ou perfil apps)
 ```
 
-Em cada tag, os testes E2E incluem um teste que **documenta a quebra** do passo. No passo
+Nas tags, os testes E2E incluem um teste que **documenta a quebra** do passo. No passo
 seguinte, a asserção se inverte.
 
 ## Licença

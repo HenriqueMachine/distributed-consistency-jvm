@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import workshop.saga.contracts.Envelope
+import workshop.saga.contracts.SagaMessage
 
 /**
  * Idempotência, camada 1 (slide 35): "já processei este messageId?".
@@ -19,7 +19,7 @@ class Inbox(private val jdbc: JdbcClient) {
 
     /** `true` na primeira entrega desta mensagem; `false` nas repetições. */
     @Transactional(propagation = Propagation.MANDATORY)
-    fun firstDelivery(envelope: Envelope): Boolean {
+    fun firstDelivery(sagaMessage: SagaMessage): Boolean {
         val inserted = jdbc.sql(
             """
             insert into processed_messages (message_id, message_type)
@@ -27,14 +27,14 @@ class Inbox(private val jdbc: JdbcClient) {
             on conflict (message_id) do nothing
             """,
         )
-            .param("messageId", envelope.messageId)
-            .param("type", envelope.type)
+            .param("messageId", sagaMessage.messageId)
+            .param("type", sagaMessage.type)
             .update() == 1
         if (!inserted) {
             log.info(
                 "evento {}… já processado — ignorado{}",
-                envelope.messageId.toString().take(4),
-                envelope.simulation?.let { " (simulate=$it)" } ?: "",
+                sagaMessage.messageId.toString().take(4),
+                sagaMessage.simulation?.let { " (simulate=$it)" } ?: "",
             )
         }
         return inserted

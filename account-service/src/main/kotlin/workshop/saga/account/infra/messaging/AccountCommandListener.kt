@@ -17,11 +17,11 @@ class AccountCommandListener(private val debitService: DebitService) {
     /** Um `DebitAccount` ou um `RefundDebit`. */
     @KafkaListener(topics = [Topics.ACCOUNT_COMMANDS])
     fun onCommand(record: ConsumerRecord<String, String>) {
-        val envelope = IncomingMessage.read(record)
-        when (val command = envelope.message) {
-            is DebitAccount -> debitService.debit(command, envelope)
-            is RefundDebit -> debitService.refund(command, envelope)
-            else -> throw InvalidPayloadException("${envelope.type} não é um comando de conta")
+        val sagaMessage = IncomingMessage.read(record)
+        when (val command = sagaMessage.message) {
+            is DebitAccount -> debitService.debit(command, sagaMessage)
+            is RefundDebit -> debitService.refund(command, sagaMessage)
+            else -> throw InvalidPayloadException("${sagaMessage.type} não é um comando de conta")
         }
     }
 }
