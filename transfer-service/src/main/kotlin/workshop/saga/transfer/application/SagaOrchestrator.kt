@@ -30,11 +30,11 @@ import java.time.Clock
 import java.util.UUID
 
 /**
- * Executa as decisões da [SagaStateMachine] (slide 28): carrega a saga, pede a decisão,
+ * Executa as decisões da [SagaStateMachine] (slide 27): carrega a saga, pede a decisão,
  * grava o novo estado, registra a transição e envia os comandos. Toda a regra de "o que
  * fazer" está na máquina de estados; aqui fica só o "como fazer".
  *
- * Cada comando enviado ganha um cid filho da raiz da transferência (slide 48): o reenvio do
+ * Cada comando enviado ganha um cid filho da raiz da transferência (slide 47): o reenvio do
  * débito é `TRF-1042.DEB-b7`, irmão da primeira tentativa `TRF-1042.DEB-a1`.
  */
 @Service
@@ -94,7 +94,7 @@ class SagaOrchestrator(
                     publisher.publish(Envelope.of(it, transfer.simulation, root.child(segmentOf(it))))
                 }
                 metrics.transition(decision.from, decision.saga.state)
-                // Toda transição vira log, com motivo, tentativa e o evento que a causou (slide 47).
+                // Toda transição vira log, com motivo, tentativa e o evento que a causou (slide 46).
                 log.info(
                     "saga {} → {} cmd={} tentativa={} eventId={} motivo=\"{}\"",
                     decision.from, decision.saga.state,

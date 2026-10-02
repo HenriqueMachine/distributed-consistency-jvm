@@ -12,7 +12,7 @@ import workshop.saga.e2e.WorkshopClient.newSender
 import workshop.saga.e2e.WorkshopKafka.header
 import java.time.Duration
 
-/** Passo 8: a saga tem que ser explicável por fora, sem abrir o banco (slides 47 e 48). */
+/** Passo 8: a saga tem que ser explicável por fora, sem abrir o banco (slides 46 e 47). */
 class ObservabilityTest {
 
     @Test

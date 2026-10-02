@@ -7,7 +7,7 @@ import workshop.saga.e2e.WorkshopClient.createTransfer
 import workshop.saga.e2e.WorkshopClient.newSender
 import workshop.saga.e2e.WorkshopClient.transitions
 
-/** O log de transições (slide 30): cada mudança de estado é um fato registrado. */
+/** O log de transições (slide 29): cada mudança de estado é um fato registrado. */
 class TransitionsTest {
 
     @Test
@@ -25,7 +25,7 @@ class TransitionsTest {
         assertThat(history.first().eventId).isNull()
         assertThat(history.drop(1)).allSatisfy { assertThat(it.eventId).isNotNull() }
         // A criação é causada pela própria transferência (cid raiz); as demais, pelas respostas,
-        // que carregam o cid do comando que as originou (slide 48).
+        // que carregam o cid do comando que as originou (slide 47).
         assertThat(history.first().cid).isEqualTo("TRF-${transfer.id}")
         assertThat(history[1].cid).startsWith("TRF-${transfer.id}.DEB-")
         assertThat(history[2].cid).startsWith("TRF-${transfer.id}.PIX-")

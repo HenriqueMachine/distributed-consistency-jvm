@@ -19,7 +19,7 @@ spring:
       group-id: transfer-service
       auto-offset-reset: earliest
     listener:
-      # Commit do offset depois de cada mensagem processada: at-least-once (slide 34).
+      # Commit do offset depois de cada mensagem processada: at-least-once (slide 14).
       ack-mode: record
 
 server:

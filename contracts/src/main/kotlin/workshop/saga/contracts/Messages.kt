@@ -19,7 +19,7 @@ sealed interface AccountCommand : Message
 /** Debite [amountInCents] da conta [from]. */
 data class DebitAccount(override val transferId: Long, val from: String, val amountInCents: Long) : AccountCommand
 
-/** Compensação: devolva o débito desta transferência (slide 29). */
+/** Compensação: devolva o débito desta transferência (slide 28). */
 data class RefundDebit(override val transferId: Long) : AccountCommand
 
 // ── account.replies: account-service → orquestrador ─────────────────────────────────────

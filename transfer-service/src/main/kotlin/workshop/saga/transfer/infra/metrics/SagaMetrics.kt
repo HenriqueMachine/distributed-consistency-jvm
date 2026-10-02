@@ -12,7 +12,7 @@ import workshop.saga.transfer.domain.saga.SagaState
 import workshop.saga.transfer.infra.persistence.SagaRepository
 
 /**
- * Métricas da saga em `/actuator/metrics` (slide 47):
+ * Métricas da saga em `/actuator/metrics` (slide 46):
  *
  * - `saga.transitions{from,to}`: quantas transições aconteceram;
  * - `saga.state{state}`: quantas sagas estão em cada estado agora. As que importam para

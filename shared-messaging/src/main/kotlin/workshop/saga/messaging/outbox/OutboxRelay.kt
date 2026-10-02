@@ -65,7 +65,7 @@ class OutboxRelay(
         }
 
     private companion object {
-        /** Lote por rodada: depois de uma queda, o relay não inunda o tópico (slide 45). */
+        /** Lote por rodada: depois de uma queda, o relay não inunda o tópico (slide 44). */
         const val BATCH_SIZE = 100
         val log = LoggerFactory.getLogger(OutboxRelay::class.java)
     }
