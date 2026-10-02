@@ -16,19 +16,19 @@ import workshop.saga.contracts.InvalidPayloadException
 import workshop.saga.contracts.Topics
 
 /**
- * O que fazer quando um listener lança exceção (slide 39).
+ * O que fazer quando um listener lança exceção (slide 40).
  *
  * - **Erro transitório** (banco fora, rede, lock): tenta de novo com backoff exponencial,
  *   1 s, 2 s, 4 s. Esgotou, a mensagem vai para a DLT.
  * - **Erro permanente** ([InvalidPayloadException]): retry não ajuda, vai direto para a DLT.
  * - **Dependência fora do ar** ([DependencyUnavailableException]): não é culpa da mensagem;
- *   tenta de novo a cada 2 s, sem limite, e nunca vai para a DLT (slide 40).
+ *   tenta de novo a cada 2 s, sem limite, e nunca vai para a DLT (slide 41).
  *
  * Nos dois primeiros casos a mensagem sai do caminho e a partição volta a andar: as
  * mensagens das outras transferências não ficam presas atrás dela. O Spring Boot liga este
  * handler a todos os `@KafkaListener` do serviço.
  *
- * Cuidado com o retry bloqueante longo (slide 43): 1 + 2 + 4 = 7 s parado nesta mensagem,
+ * Cuidado com o retry bloqueante longo (slide 44): 1 + 2 + 4 = 7 s parado nesta mensagem,
  * bem abaixo do `max.poll.interval.ms` (5 min). E o prazo da saga para este passo precisa
  * ser maior que isso.
  */
@@ -52,7 +52,7 @@ class KafkaErrorHandlingConfig {
 
     /**
      * Publica na DLT (com headers explicando a falha), deixa um rastro legível no log e
-     * conta a mensagem em `saga.dlt.messages`: toda DLT precisa de alerta (slide 39).
+     * conta a mensagem em `saga.dlt.messages`: toda DLT precisa de alerta (slide 40).
      * O `transferId` e o `cid` já estão no MDC: o interceptor os pôs antes do listener.
      */
     private fun deadLetterRecoverer(kafka: KafkaTemplate<String, String>, meters: MeterRegistry): ConsumerRecordRecoverer {
@@ -85,7 +85,7 @@ class KafkaErrorHandlingConfig {
     private fun Throwable.rootCause(): Throwable = generateSequence(this) { it.cause }.last()
 
     private companion object {
-        /** Retries depois da primeira tentativa: 1 s, 2 s, 4 s. O log conta "tentativa=3" como no slide 45. */
+        /** Retries depois da primeira tentativa: 1 s, 2 s, 4 s. O log conta "tentativa=3" como no slide 46. */
         const val MAX_RETRIES = 3
 
         /** Dependência fora do ar: tenta a cada 2 s até ela voltar. */

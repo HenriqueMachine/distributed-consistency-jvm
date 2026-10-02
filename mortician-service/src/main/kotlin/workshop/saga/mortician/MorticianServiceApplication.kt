@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Import
 import workshop.saga.messaging.SharedMessagingConfiguration
 
 /**
- * mortician-service: o dono das DLTs (slide 41). Consome todas elas, guarda cada mensagem
+ * mortician-service: o dono das DLTs (slide 42). Consome todas elas, guarda cada mensagem
  * com o erro e expõe listar, investigar e republicar.
  */
 @SpringBootApplication
