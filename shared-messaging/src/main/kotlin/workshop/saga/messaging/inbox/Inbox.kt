@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 import workshop.saga.contracts.Envelope
 
 /**
- * Idempotência, camada 1 (slide 34): "já processei este messageId?".
+ * Idempotência, camada 1 (slide 35): "já processei este messageId?".
  *
  * Registra o `messageId` em `processed_messages` **na mesma transação do efeito**. Se o
  * efeito falhar, o registro também volta, e a mensagem pode ser reprocessada. Se a

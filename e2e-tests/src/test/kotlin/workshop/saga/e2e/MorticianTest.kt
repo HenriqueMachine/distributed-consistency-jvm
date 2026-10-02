@@ -13,7 +13,7 @@ import workshop.saga.e2e.WorkshopClient.pixCredits
 import workshop.saga.e2e.WorkshopClient.republish
 import java.time.Duration
 
-/** Passo 7 (slide 40): a DLT ganha um dono, e a transferência parada pode ser resgatada. */
+/** Passo 7 (slide 41): a DLT ganha um dono, e a transferência parada pode ser resgatada. */
 class MorticianTest {
 
     @Test

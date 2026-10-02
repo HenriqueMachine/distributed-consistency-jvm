@@ -17,7 +17,7 @@ class FailureSimulator(
 ) {
     /**
      * `DEBIT_SLOW`: o débito é feito e gravado na hora, mas a resposta fica retida na
-     * outbox. Para o orquestrador, é indistinguível de uma rede lenta (slide 37).
+     * outbox. Para o orquestrador, é indistinguível de uma rede lenta (slide 38).
      */
     fun replyDelayFor(request: Envelope): Duration =
         if (request.simulation == Simulation.DEBIT_SLOW) {

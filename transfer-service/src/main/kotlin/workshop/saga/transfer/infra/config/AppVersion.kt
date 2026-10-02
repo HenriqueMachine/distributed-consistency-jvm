@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 
 /**
  * A versão do código que está decidindo: o git sha gravado no `build-info.properties`
- * pelo Gradle. Vai em cada linha de `saga_transitions` (slide 27).
+ * pelo Gradle. Vai em cada linha de `saga_transitions` (slide 28).
  */
 @Component
 class AppVersion(buildProperties: ObjectProvider<BuildProperties>) {

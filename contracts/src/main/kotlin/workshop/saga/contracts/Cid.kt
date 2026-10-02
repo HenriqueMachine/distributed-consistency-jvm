@@ -3,7 +3,7 @@ package workshop.saga.contracts
 import java.util.concurrent.ThreadLocalRandom
 
 /**
- * Correlation id em árvore (slide 45): quem produz a próxima mensagem acrescenta um
+ * Correlation id em árvore (slide 46): quem produz a próxima mensagem acrescenta um
  * segmento ao id, e o id conta o caminho.
  *
  * ```

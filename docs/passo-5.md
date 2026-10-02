@@ -63,7 +63,7 @@ curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
 ```
 
 O resultado foi um débito, nenhum estorno e a transferência concluída. É a linha do tempo
-do slide 37.
+do slide 38.
 
 ## Quebre
 

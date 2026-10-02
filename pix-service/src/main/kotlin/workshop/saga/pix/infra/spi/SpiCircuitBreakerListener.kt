@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 import workshop.saga.pix.infra.messaging.PixCommandListener
 
 /**
- * Circuito aberto = pausa o consumidor (slide 39). Enquanto o SPI está fora, não adianta
+ * Circuito aberto = pausa o consumidor (slide 40). Enquanto o SPI está fora, não adianta
  * buscar mais `SendPix`: as mensagens ficam no tópico (o lag cresce no Kafka UI) em vez de
  * falhar uma a uma. Em HALF_OPEN o consumidor volta, para a chamada de teste passar.
  */
