@@ -48,7 +48,7 @@ Quebre o Pix e espere a saga desistir (uns 40 s):
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
   -H 'X-Simulate: PIX_CRASH' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 
 curl -s localhost:8081/transfers/1042                     # "state":"NEEDS_ATTENTION"
 curl -s 'localhost:8084/dead-letters?transferId=1042'     # 3 mensagens NEW

@@ -47,12 +47,12 @@ Repita a quebra do passo 4:
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
   -H 'X-Simulate: DEBIT_SLOW' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 ```
 
 ```
  0s   [transfer] 1042 CREATED → DEBIT_PENDING cmd=DebitAccount (transferência criada)
- 0,1s [account]  1042 debitado R$ 150,00 de ana debitId=d-1 → AccountDebited
+ 0,1s [account]  1042 debitado R$ 150,00 de bia debitId=d-1 → AccountDebited
  0,1s [account]  1042 simulate=DEBIT_SLOW: resposta retida por 15s
  8s   [transfer] 1042 DEBIT_PENDING → DEBIT_UNKNOWN cmd=DebitAccount (timeout 8s → não sei se debitou, reenviando com a mesma chave tentativa=2)
  8s   [account]  1042 já debitado debitId=d-1 → devolvendo resultado anterior
@@ -72,7 +72,7 @@ Agora o Pix quebra, e de um jeito que não passa com o tempo:
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
   -H 'X-Simulate: PIX_CRASH' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 
 grep -E 'PIX_CRASH|exhausted' logs/pix-service.log
 ```
@@ -91,7 +91,7 @@ orquestrador não tem prazo para o Pix:
 curl -s localhost:8081/transfers/1043    # "state":"PIX_PENDING" para sempre
 ```
 
-A Ana foi debitada e o Henrique nunca recebe. E se a falha fosse passageira (um lock, o banco
+A Bia foi debitada e o Henrique nunca recebe. E se a falha fosse passageira (um lock, o banco
 reiniciando), 10 tentativas em 5 s gastariam todas as chances antes de ela passar.
 
 ## Por que o próximo passo existe

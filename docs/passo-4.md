@@ -58,7 +58,7 @@ Repita a quebra do passo 3:
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
   -H 'X-Simulate: DUPLICATE' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 
 grep -h 'já processado' logs/*.log
 ```
@@ -79,21 +79,21 @@ espera 8 s pelo débito.
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
   -H 'X-Simulate: DEBIT_SLOW' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 ```
 
 ```
  0s  [transfer] 1043 CREATED → DEBIT_PENDING cmd=DebitAccount (transferência criada)
- 0s  [account]  1043 debitado R$ 150,00 de ana debitId=d-2 → AccountDebited
+ 0s  [account]  1043 debitado R$ 150,00 de bia debitId=d-2 → AccountDebited
  0s  [account]  1043 simulate=DEBIT_SLOW: resposta retida por 15s
  8s  [transfer] 1043 DEBIT_PENDING → REFUNDING cmd=RefundDebit (timeout 8s no débito: considerado falha, estornando)
- 8s  [account]  1043 estornado R$ 150,00 para ana debitId=d-2 → DebitRefunded
+ 8s  [account]  1043 estornado R$ 150,00 para bia debitId=d-2 → DebitRefunded
  9s  [transfer] 1043 REFUNDING → CANCELLED cmd=- (estorno concluído debitId=d-2)
 15s  [transfer] 1043 AccountDebited ignorado: saga já está em CANCELLED
 ```
 
 O débito **deu certo**, mas o timeout foi lido como falha: a saga estornou e cancelou uma
-transferência que ia passar. O Henrique não recebeu, e a Ana vê no extrato um débito e um
+transferência que ia passar. O Henrique não recebeu, e a Bia vê no extrato um débito e um
 estorno que nunca deveriam ter acontecido. Olhe o `SagaStateMachine`, no ramo
 `DEBIT_PENDING → TimedOut` (`⚠ QUEBRA passo-4`):
 

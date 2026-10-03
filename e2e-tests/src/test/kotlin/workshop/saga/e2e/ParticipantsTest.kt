@@ -35,8 +35,8 @@ class ParticipantsTest {
     }
 
     @Test
-    fun `ana and henrique come in the initial seed`() {
-        assertThat(participant("ana")).isNotNull()
+    fun `bia and henrique come in the initial seed`() {
+        assertThat(participant("bia")).isNotNull()
         assertThat(participant("henrique")).isNotNull()
     }
 }

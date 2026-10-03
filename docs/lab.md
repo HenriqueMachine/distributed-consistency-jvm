@@ -16,7 +16,7 @@ Dispare os cenários (ou use a [collection do Postman](../postman/transacao-1042
 transfer() {  # uso: transfer <para> [X-Simulate]
   curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
     ${2:+-H "X-Simulate: $2"} \
-    -d "{\"from\": \"ana\", \"to\": \"$1\", \"amount\": 150.00}"; echo
+    -d "{\"from\": \"bia\", \"to\": \"$1\", \"amount\": 150.00}"; echo
 }
 
 transfer henrique                        # 1. caminho feliz
@@ -54,7 +54,7 @@ grep -h TRF-1042 logs/*.log | sort
 Para cada um, responda:
 
 1. Em que estado a saga terminou, e por quê?
-2. Quantas vezes a Ana foi debitada? E estornada?
+2. Quantas vezes a Bia foi debitada? E estornada?
 3. Qual serviço "viu" o problema primeiro? Qual cid ele estava processando?
 4. Se fosse produção, alguém precisaria agir? Quem, e com que informação?
 
@@ -87,7 +87,7 @@ estorno.
 `falha tentativa=3 → pix.commands.DLT`. O Mortician loga `dead letter N guardada`. Aos 12 s
 o transfer reenvia (`tentativa=2`, um `PIX-yy` novo) e o ciclo se repete. Depois da
 terceira tentativa, `PIX_PENDING → NEEDS_ATTENTION`. Ficam três dead letters e
-`saga.state{state=NEEDS_ATTENTION}` ≥ 1. A Ana foi debitada e o Henrique não recebeu:
+`saga.state{state=NEEDS_ATTENTION}` ≥ 1. A Bia foi debitada e o Henrique não recebeu:
 **alguém precisa agir**, e o Mortician tem o payload, o erro e o cid.
 
 **6. Resgate.** O Mortician loga `dead letter N republicada em pix.commands por …` com o cid

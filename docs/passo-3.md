@@ -44,7 +44,7 @@ Repita a quebra do passo 2:
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
   -H 'X-Simulate: CRASH_AFTER_SEND' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 # {"detail":"falha simulada depois do envio (transferência 1042)", "transferId":1042, ...}
 
 curl -s 'localhost:8082/debits?transferId=1042'
@@ -61,14 +61,14 @@ as duas coisas?
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
   -H 'X-Simulate: DUPLICATE' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 ```
 
 ```
 [transfer] 1043 CREATED → DEBIT_PENDING cmd=DebitAccount (transferência criada)
 [transfer] relay simulate=DUPLICATE: DebitAccount messageId=8c4f… publicado 2× (queda antes de marcar published_at)
-[account]  1043 debitado R$ 150,00 de ana debitId=d-1 → AccountDebited
-[account]  1043 debitado R$ 150,00 de ana debitId=d-2 → AccountDebited
+[account]  1043 debitado R$ 150,00 de bia debitId=d-1 → AccountDebited
+[account]  1043 debitado R$ 150,00 de bia debitId=d-2 → AccountDebited
 [transfer] 1043 DEBIT_PENDING → PIX_PENDING cmd=SendPix (débito aprovado debitId=d-1)
 [transfer] 1043 AccountDebited ignorado: saga já está em PIX_PENDING
 [pix]      1043 Pix liquidado R$ 150,00 para henrique endToEndId=E1043… → PixSettled
@@ -77,10 +77,10 @@ curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
 
 ```bash
 curl -s 'localhost:8082/debits?transferId=1043'   # 2 débitos
-curl -s localhost:8082/participants               # a Ana perdeu R$ 300,00
+curl -s localhost:8082/participants               # a Bia perdeu R$ 300,00
 ```
 
-A Ana foi **debitada duas vezes**, e o Henrique recebeu dois Pix. O orquestrador se protegeu
+A Bia foi **debitada duas vezes**, e o Henrique recebeu dois Pix. O orquestrador se protegeu
 sozinho, porque a máquina de estados ignora respostas que chegam fora de hora. Os
 participantes, não.
 

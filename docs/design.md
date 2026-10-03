@@ -81,7 +81,7 @@ GET  /participants  → contas com saldo
 - Quem **recebe** é identificado pela chave Pix. O `pix-service` representa o "outro
   banco": aceita qualquer chave e registra o crédito, exceto `conta-encerrada`, que é
   recusada (`PixRejected`) e dispara a compensação.
-- Ana (R$ 1.000,00) e Henrique (R$ 500,00) vêm no seed.
+- Bia (R$ 1.000,00) e Henrique (R$ 500,00) vêm no seed.
 
 ### Módulos
 
@@ -152,7 +152,7 @@ As simulações ficam fora das regras de negócio: um `FailureSimulator` por ser
 |---|---|---|
 | passo-1 | Monorepo, compose (infra + perfil `apps`), tópicos, participantes, `POST/GET /transfers` grava a transferência e a saga em CREATED | A transferência não sai do lugar |
 | passo-2 | Contratos, `decide()` puro, débito, Pix, compensação por estorno, `saga_transitions`. `send` direto no `@Transactional`. Timeout ingênuo do débito: compensa | `CRASH_AFTER_SEND`: débito de uma transferência que não existe |
-| passo-3 | Outbox + relay `@Scheduled` em todos os serviços | `DUPLICATE`: Ana debitada duas vezes |
+| passo-3 | Outbox + relay `@Scheduled` em todos os serviços | `DUPLICATE`: Bia debitada duas vezes |
 | passo-4 | Idempotência: `processed_messages` + `unique(transfer_id)` em `debits` e `pix_transfers`, um estorno por débito | `DEBIT_SLOW`: o timeout dispara o estorno de um débito que deu certo |
 | passo-5 | `DEBIT_UNKNOWN`, reenvio com a mesma chave, limite → `NEEDS_ATTENTION`, compensação só com "não" explícito | `PIX_CRASH`: o handler padrão descarta a mensagem e a saga fica parada em PIX_PENDING |
 | passo-6 | `DefaultErrorHandler` 1/2/4 s → DLT, `InvalidPayloadException` sem retry, prazo em todos os estados pendentes, circuit breaker do SPI (circuito aberto pausa o consumidor) | A DLT vira lixeira: só se olha com `kafka-console-consumer` |

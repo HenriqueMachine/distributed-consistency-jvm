@@ -3,7 +3,7 @@
 Código da palestra hands-on **"Transação #1042 · Falha não é exceção: é parte do fluxo"**:
 sagas resilientes com Kotlin, Spring Boot e Kafka.
 
-Uma transferência Pix de R$ 150,00 da Ana para o Henrique atravessa três serviços. A gente
+Uma transferência Pix de R$ 150,00 da Bia para o Henrique atravessa três serviços. A gente
 derruba o sistema de propósito, lê cada falha nos logs e mostra o padrão que a resolve: saga,
 outbox, idempotência, timeout, retry + DLT, circuit breaker, Mortician e correlation id.
 
@@ -34,7 +34,7 @@ Em outro terminal:
 
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 
 tail -f logs/*.log                   # cada serviço loga também em logs/<serviço>.log
 ```
@@ -65,7 +65,7 @@ docker compose up -d && ./gradlew bootRun --parallel
 
 ## Mapa: falha → padrão → código
 
-O que pode dar errado com o Pix da Ana, o padrão que resolve e onde ele está no código.
+O que pode dar errado com o Pix da Bia, o padrão que resolve e onde ele está no código.
 
 | O que pode dar errado | Padrão | Onde olhar |
 |---|---|---|
@@ -77,7 +77,7 @@ O que pode dar errado com o Pix da Ana, o padrão que resolve e onde ele está n
 | A mensagem falha sempre | Retry + DLT | [`KafkaErrorHandlingConfig`](shared-messaging/src/main/kotlin/workshop/saga/messaging/errors/KafkaErrorHandlingConfig.kt) |
 | O parceiro cai para todo mundo | Circuit breaker | [`SpiGateway`](pix-service/src/main/kotlin/workshop/saga/pix/infra/spi/SpiGateway.kt) · [`SpiCircuitBreakerListener`](pix-service/src/main/kotlin/workshop/saga/pix/infra/spi/SpiCircuitBreakerListener.kt) |
 | A DLT enche e ninguém olha | Mortician | [`DeadLetterService.republish()`](mortician-service/src/main/kotlin/workshop/saga/mortician/application/DeadLetterService.kt) |
-| "Cadê o dinheiro da Ana?" | Correlation id e logs | [`Cid`](contracts/src/main/kotlin/workshop/saga/contracts/Cid.kt) · [`SagaContext`](shared-messaging/src/main/kotlin/workshop/saga/messaging/observability/SagaContext.kt) |
+| "Cadê o dinheiro da Bia?" | Correlation id e logs | [`Cid`](contracts/src/main/kotlin/workshop/saga/contracts/Cid.kt) · [`SagaContext`](shared-messaging/src/main/kotlin/workshop/saga/messaging/observability/SagaContext.kt) |
 
 Tudo que tem `Simulation` (`FailureSimulator`, header `X-Simulate`, `SpiOutage`, `GET /pix`,
 `GET /debits`) é andaime da apresentação: existe só para provocar e provar falhas ao vivo.
@@ -144,7 +144,7 @@ O Kafka UI roda em **http://localhost:8080** (sobe junto com a infra). Ele mostr
 
 ### Participantes da sala
 
-Ana e Henrique vêm no cadastro inicial. Para a transferência acontecer entre pessoas da
+Bia e Henrique vêm no cadastro inicial. Para a transferência acontecer entre pessoas da
 plateia:
 
 ```bash

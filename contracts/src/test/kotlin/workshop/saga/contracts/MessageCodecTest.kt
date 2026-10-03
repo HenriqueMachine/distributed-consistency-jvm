@@ -8,7 +8,7 @@ class MessageCodecTest {
 
     @Test
     fun `round trip preserves the message`() {
-        val original = DebitAccount(transferId = 1042, from = "ana", amountInCents = 15_000)
+        val original = DebitAccount(transferId = 1042, from = "bia", amountInCents = 15_000)
 
         val decoded = MessageCodec.decode(MessageCodec.typeOf(original), MessageCodec.encode(original))
 

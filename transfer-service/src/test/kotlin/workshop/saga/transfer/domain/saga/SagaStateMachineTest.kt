@@ -31,7 +31,7 @@ class SagaStateMachineTest {
             maxAttempts = 3,
         ),
     )
-    private val transfer = Transfer(TransferId(1042), "ana", "henrique", Money(15_000))
+    private val transfer = Transfer(TransferId(1042), "bia", "henrique", Money(15_000))
 
     private fun sagaIn(state: SagaState, deadlineAt: Instant? = null, attempts: Int = 1) =
         Saga(transfer.id, state, deadlineAt, attempts)
@@ -43,7 +43,7 @@ class SagaStateMachineTest {
         val decision = assertIs<Decision.Transition>(decide(sagaIn(CREATED), SagaEvent.TransferPlaced))
 
         assertEquals(DEBIT_PENDING, decision.saga.state)
-        assertEquals(listOf(DebitAccount(1042, "ana", 15_000)), decision.commands)
+        assertEquals(listOf(DebitAccount(1042, "bia", 15_000)), decision.commands)
         assertEquals(now.plusSeconds(8), decision.saga.deadlineAt)
         assertEquals(1, decision.saga.attempts)
     }
@@ -93,7 +93,7 @@ class SagaStateMachineTest {
         val decision = assertIs<Decision.Transition>(decide(sagaIn(DEBIT_PENDING, deadlineAt = now, attempts = 1), SagaEvent.TimedOut))
 
         assertEquals(DEBIT_UNKNOWN, decision.saga.state)
-        assertEquals(listOf(DebitAccount(1042, "ana", 15_000)), decision.commands)
+        assertEquals(listOf(DebitAccount(1042, "bia", 15_000)), decision.commands)
         assertEquals(2, decision.saga.attempts)
         assertEquals(now.plusSeconds(8), decision.saga.deadlineAt)
     }

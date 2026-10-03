@@ -56,15 +56,15 @@ docker compose down && rm -rf logs && docker compose up -d
 
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
   -H 'X-Simulate: DEBIT_SLOW' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 
 grep -h TRF-1042 logs/*.log | sort
 ```
 
 ```
-transfer  transferId=1042 cid=TRF-1042        transferência criada ana → henrique valor=R$ 150,00
+transfer  transferId=1042 cid=TRF-1042        transferência criada bia → henrique valor=R$ 150,00
 transfer  transferId=1042 cid=TRF-1042        saga CREATED → DEBIT_PENDING cmd=DebitAccount tentativa=1 eventId=- motivo="transferência criada"
-account   transferId=1042 cid=TRF-1042.DEB-b8 débito aprovado R$ 150,00 de ana debitId=d-1 → AccountDebited
+account   transferId=1042 cid=TRF-1042.DEB-b8 débito aprovado R$ 150,00 de bia debitId=d-1 → AccountDebited
 account   transferId=1042 cid=TRF-1042.DEB-b8 simulate=DEBIT_SLOW: resposta retida por 15s
 transfer  transferId=1042 cid=TRF-1042        saga DEBIT_PENDING → DEBIT_UNKNOWN cmd=DebitAccount tentativa=2 eventId=- motivo="timeout 8s → não sei se debitou, …"
 account   transferId=1042 cid=TRF-1042.DEB-c8 já debitado debitId=d-1 → devolvendo resultado anterior
@@ -102,7 +102,7 @@ SPRING_PROFILES_ACTIVE=json ./gradlew bootRun --parallel
 
 ```json
 {"@timestamp":"…","log":{"level":"INFO","logger":"workshop.saga.account.application.DebitService"},
- "service":{"name":"account-service"},"message":"débito aprovado R$ 150,00 de ana debitId=d-1 → AccountDebited",
+ "service":{"name":"account-service"},"message":"débito aprovado R$ 150,00 de bia debitId=d-1 → AccountDebited",
  "transferId":"1042","cid":"TRF-1042.DEB-b8", …}
 ```
 

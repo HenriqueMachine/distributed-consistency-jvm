@@ -54,7 +54,7 @@ docker compose down && rm -rf logs && docker compose up -d
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
   -H 'X-Simulate: PIX_CRASH' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 ```
 
 ```
@@ -88,7 +88,7 @@ e 4 s.
 ```bash
 curl -s -X POST 'localhost:8083/spi/outage?seconds=15'
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 watch -n1 curl -s localhost:8083/spi        # CLOSED → OPEN → HALF_OPEN → CLOSED
 ```
 

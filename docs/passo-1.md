@@ -4,7 +4,7 @@
 
 ## A ideia
 
-Uma transferência, três bancos de dados, uma promessa: ou o dinheiro sai da Ana e chega ao
+Uma transferência, três bancos de dados, uma promessa: ou o dinheiro sai da Bia e chega ao
 Henrique, ou tudo volta como estava. Antes de qualquer saga, montamos o terreno: três serviços,
 cada um com o seu Postgres, e um Kafka no meio.
 
@@ -20,7 +20,7 @@ cada um com o seu Postgres, e um Kafka no meio.
 | `account-service` | `POST/GET /participants`: o cadastro das pessoas da sala |
 | `contracts/.../Money.kt` | Dinheiro em centavos, compartilhado por todos |
 | `transfer-service/.../V1__transfers_and_sagas.sql` | A sequência de transferências começa em **1042** |
-| `account-service/.../V1__accounts.sql` | Ana (R$ 1.000,00) e Henrique (R$ 500,00) |
+| `account-service/.../V1__accounts.sql` | Bia (R$ 1.000,00) e Henrique (R$ 500,00) |
 
 A transferência (`transfers`) e a saga (`sagas`) são tabelas separadas de propósito: a
 transferência é o que o cliente pediu; a saga é o andamento do pedido.
@@ -50,8 +50,8 @@ curl -s -X POST localhost:8082/participants -H 'Content-Type: application/json' 
   -d '{"name": "Maria Souza", "pixKey": "maria", "balance": 1000.00}'
 
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
-# {"id":1042,"from":"ana","to":"henrique","amount":150.00,"state":"CREATED"}
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
+# {"id":1042,"from":"bia","to":"henrique","amount":150.00,"state":"CREATED"}
 ```
 
 ## Quebre
@@ -63,7 +63,7 @@ curl -s localhost:8081/transfers/1042
 ```
 
 ```
-[transfer] transferência 1042 criada ana → henrique valor=R$ 150,00 → CREATED
+[transfer] transferência 1042 criada bia → henrique valor=R$ 150,00 → CREATED
 ```
 
 A transferência fica em `CREATED` para sempre. Os tópicos estão vazios: os serviços ainda

@@ -23,7 +23,7 @@ import java.math.BigDecimal
 import java.net.URI
 import java.util.UUID
 
-/** Corpo de `POST /transfers`. Ex.: `{"from": "ana", "to": "henrique", "amount": 150.00}`. */
+/** Corpo de `POST /transfers`. Ex.: `{"from": "bia", "to": "henrique", "amount": 150.00}`. */
 data class CreateTransferRequest(val from: String, val to: String, val amount: BigDecimal)
 
 /** Resposta de leitura de uma transferência, com o estado atual da saga. */

@@ -37,7 +37,7 @@ Com o ambiente no ar (`docker compose up -d` e `./gradlew bootRun --parallel`):
 1. Provoque o incidente: uma transferência com `X-Simulate: PIX_CRASH`.
    ```bash
    curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
-     -H 'X-Simulate: PIX_CRASH' -d '{"from": "ana", "to": "henrique", "amount": 50.00}'
+     -H 'X-Simulate: PIX_CRASH' -d '{"from": "bia", "to": "henrique", "amount": 50.00}'
    ```
 2. Em uns 10 s, o alerta: `saga.dlt.messages` sobe no pix-service. Abra o
    [runbook da DLT](runbooks/dlt.md).

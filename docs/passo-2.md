@@ -50,18 +50,18 @@ Use a collection do Postman (pasta "Passo 1–2 · Saga orquestrada") ou:
 
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
-  -d '{"from": "ana", "to": "conta-encerrada", "amount": 150.00}'
+  -d '{"from": "bia", "to": "conta-encerrada", "amount": 150.00}'
 
 grep -h '→' logs/*.log | sort
 ```
 
 ```
 [transfer] 1042 CREATED → DEBIT_PENDING cmd=DebitAccount (transferência criada)
-[account]  1042 debitado R$ 150,00 de ana debitId=d-1 → AccountDebited
+[account]  1042 debitado R$ 150,00 de bia debitId=d-1 → AccountDebited
 [transfer] 1042 DEBIT_PENDING → PIX_PENDING cmd=SendPix (débito aprovado debitId=d-1)
 [pix]      1042 conta destino encerrada chave=conta-encerrada → PixRejected
 [transfer] 1042 PIX_PENDING → REFUNDING cmd=RefundDebit (Pix recusado: conta destino encerrada …)
-[account]  1042 estornado R$ 150,00 para ana debitId=d-1 → DebitRefunded
+[account]  1042 estornado R$ 150,00 para bia debitId=d-1 → DebitRefunded
 [transfer] 1042 REFUNDING → CANCELLED cmd=- (estorno concluído debitId=d-1)
 ```
 
@@ -100,7 +100,7 @@ Derrube a aplicação entre o `send` e o commit:
 ```bash
 curl -s -X POST localhost:8081/transfers -H 'Content-Type: application/json' \
   -H 'X-Simulate: CRASH_AFTER_SEND' \
-  -d '{"from": "ana", "to": "henrique", "amount": 150.00}'
+  -d '{"from": "bia", "to": "henrique", "amount": 150.00}'
 # {"detail":"falha simulada depois do envio (transferência 1043)", "transferId":1043, ...}
 
 curl -s -o /dev/null -w '%{http_code}\n' localhost:8081/transfers/1043   # 404
@@ -109,11 +109,11 @@ curl -s 'localhost:8082/debits?transferId=1043'                          # 1 dé
 
 ```
 [transfer] transferência 1043 simulate=CRASH_AFTER_SEND: caindo depois do send, antes do commit
-[account]  1043 debitado R$ 150,00 de ana debitId=d-2 → AccountDebited
+[account]  1043 debitado R$ 150,00 de bia debitId=d-2 → AccountDebited
 [transfer] transferência 1043 não existe: AccountDebited ignorado
 ```
 
-A Ana foi debitada por uma transferência que não existe (cenário A do slide 30).
+A Bia foi debitada por uma transferência que não existe (cenário A do slide 30).
 
 Inverter a ordem (commit primeiro, `send` depois) não resolve: se a aplicação cair entre
 os dois, a transferência fica em `DEBIT_PENDING` sem que nenhuma mensagem tenha saído

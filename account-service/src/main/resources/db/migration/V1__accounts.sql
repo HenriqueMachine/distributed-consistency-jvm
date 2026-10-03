@@ -6,7 +6,7 @@ create table accounts (
     created_at    timestamptz  not null default now()
 );
 
--- Ana e Henrique: os personagens dos slides.
+-- Bia e Henrique: os personagens dos slides.
 insert into accounts (pix_key, name, balance_cents) values
-    ('ana',   'Ana',   100000),
+    ('bia',   'Bia',   100000),
     ('henrique', 'Henrique',  50000);
